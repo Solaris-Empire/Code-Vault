@@ -1,0 +1,17 @@
+# Security Policy for UK Grocery Store
+
+Contact: mailto:security@ukgrocerystore.com
+Expires: 2027-01-01T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://ukgrocerystore.com/.well-known/security.txt
+
+# We appreciate security researchers who help us keep our platform safe.
+# Please report any security vulnerabilities responsibly.
+
+Policy: https://ukgrocerystore.com/security-policy
+
+# Acknowledgments
+Acknowledgments: https://ukgrocerystore.com/security-thanks
+
+# Hiring
+Hiring: https://ukgrocerystore.com/careers

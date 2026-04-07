@@ -1,0 +1,29 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    {
+      "path": "/api/cron/automation?task=hourly",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/automation?task=daily",
+      "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/automation?task=weekly",
+      "schedule": "0 3 * * 0"
+    },
+    {
+      "path": "/api/cron/automation?task=abandoned_carts",
+      "schedule": "*/30 * * * *"
+    },
+    {
+      "path": "/api/cron/stock-alerts?action=back_in_stock",
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/stock-alerts?action=low_stock",
+      "schedule": "0 9 * * *"
+    }
+  ]
+}

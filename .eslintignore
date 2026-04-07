@@ -1,0 +1,29 @@
+# Build outputs
+.next/
+out/
+build/
+dist/
+
+# Dependencies
+node_modules/
+
+# Generated files
+next-env.d.ts
+*.generated.*
+*.min.js
+*.min.css
+
+# Coverage reports
+coverage/
+
+# Test artifacts
+playwright-report/
+test-results/
+
+# Static assets
+public/
+
+# Lock files
+package-lock.json
+pnpm-lock.yaml
+yarn.lock

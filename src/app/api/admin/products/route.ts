@@ -1,0 +1,48 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { requireAdmin } from '@/lib/auth/verify'
+import { getSupabaseAdmin } from '@/lib/supabase/server'
+
+export const dynamic = 'force-dynamic'
+
+// ─── GET /api/admin/products ───────────────────────────────────────
+// Lists all products for admin review. Supports filtering by status.
+export async function GET(request: NextRequest) {
+  const auth = await requireAdmin(request)
+  if (!auth.success) return auth.error!
+
+  const { searchParams } = request.nextUrl
+  const status = searchParams.get('status')
+  const search = searchParams.get('search')
+
+  const admin = getSupabaseAdmin()
+
+  let query = admin
+    .from('products')
+    .select(`
+      id, title, slug, status, price_cents, download_count,
+      thumbnail_url, created_at,
+      seller:users!products_seller_id_fkey(display_name),
+      category:categories!products_category_id_fkey(name)
+    `)
+    .order('created_at', { ascending: false })
+    .limit(100)
+
+  if (status && status !== 'all') {
+    query = query.eq('status', status)
+  }
+
+  if (search) {
+    query = query.ilike('title', `%${search}%`)
+  }
+
+  const { data: products, error } = await query
+
+  if (error) {
+    return NextResponse.json(
+      { error: { message: 'Failed to fetch products' } },
+      { status: 500 }
+    )
+  }
+
+  return NextResponse.json({ data: products || [] })
+}

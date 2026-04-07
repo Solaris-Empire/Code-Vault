@@ -1,0 +1,70 @@
+# Build outputs
+.next/
+out/
+build/
+dist/
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Package manager lock files
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+bun.lockb
+
+# Generated files
+next-env.d.ts
+*.generated.*
+*.min.js
+*.min.css
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# Test artifacts
+playwright-report/
+test-results/
+.playwright/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Cache directories
+.cache/
+.turbo/
+.vercel/
+
+# Static assets that shouldn't be formatted
+public/
+*.ico
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.woff
+*.woff2
+*.ttf
+*.eot
+
+# Documentation build
+docs/_build/
+
+# Logs
+*.log
+logs/

@@ -1,0 +1,60 @@
+{
+  "name": "MegaMart UK - Shop Everything Online",
+  "short_name": "MegaMart",
+  "description": "Shop millions of products online. Electronics, Fashion, Home, Beauty & more. Best deals delivered to your door across the UK.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#ff6b00",
+  "background_color": "#ffffff",
+  "scope": "/",
+  "lang": "en-GB",
+  "dir": "ltr",
+  "categories": ["shopping", "marketplace", "ecommerce", "retail"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Today's Deals",
+      "short_name": "Deals",
+      "description": "Check out today's best deals",
+      "url": "/deals"
+    },
+    {
+      "name": "Categories",
+      "short_name": "Categories",
+      "description": "Browse all categories",
+      "url": "/categories"
+    },
+    {
+      "name": "My Orders",
+      "short_name": "Orders",
+      "description": "Track your orders",
+      "url": "/account/orders"
+    },
+    {
+      "name": "Wishlist",
+      "short_name": "Wishlist",
+      "description": "View your wishlist",
+      "url": "/account/wishlist"
+    }
+  ],
+  "related_applications": [],
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  }
+}
