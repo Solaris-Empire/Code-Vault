@@ -44,10 +44,7 @@ interface Review {
   rating: number
   comment: string | null
   created_at: string
-  buyer: {
-    display_name: string
-    avatar_url: string | null
-  }
+  buyer: { display_name: string; avatar_url: string | null }
 }
 
 interface Product {
@@ -79,18 +76,11 @@ interface ProductPageProps {
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params
   const supabase = getSupabaseAdmin()
-
   const { data: product } = await supabase
-    .from('products')
-    .select('title, short_description, thumbnail_url')
-    .eq('slug', slug)
-    .eq('status', 'approved')
-    .single()
+    .from('products').select('title, short_description, thumbnail_url')
+    .eq('slug', slug).eq('status', 'approved').single()
 
-  if (!product) {
-    return { title: 'Product Not Found | CodeVault' }
-  }
-
+  if (!product) return { title: 'Product Not Found | CodeVault' }
   return {
     title: `${product.title} | CodeVault`,
     description: product.short_description ?? `${product.title} on CodeVault`,
@@ -102,10 +92,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   }
 }
 
-function formatPrice(cents: number): string {
-  return `$${(cents / 100).toFixed(2)}`
-}
-
+function formatPrice(cents: number): string { return `$${(cents / 100).toFixed(2)}` }
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
@@ -116,26 +103,14 @@ function StarRating({ rating, size = 16 }: { rating: number; size?: number }) {
   return (
     <div className="flex items-center gap-0.5">
       {Array.from({ length: 5 }, (_, i) => (
-        <Star
-          key={i}
-          size={size}
-          className={
-            i < Math.round(rating)
-              ? 'fill-amber-400 text-amber-400'
-              : 'text-gray-700'
-          }
-        />
+        <Star key={i} size={size} className={i < Math.round(rating) ? 'fill-amber-400 text-amber-400' : 'text-gray-200'} />
       ))}
     </div>
   )
 }
 
 function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
+  return new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
@@ -144,135 +119,63 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   const { data: product, error } = await supabase
     .from('products')
-    .select(
-      `
-      *,
-      seller:users!seller_id (
-        id,
-        display_name,
-        avatar_url,
-        bio
-      ),
-      category:categories!category_id (
-        id,
-        name,
-        slug,
-        icon
-      ),
-      product_files (
-        id,
-        file_name,
-        file_size_bytes,
-        version,
-        changelog,
-        created_at
-      )
-    `
-    )
-    .eq('slug', slug)
-    .eq('status', 'approved')
-    .eq('product_files.is_current', true)
-    .single()
+    .select(`*, seller:users!seller_id(id, display_name, avatar_url, bio), category:categories!category_id(id, name, slug, icon), product_files(id, file_name, file_size_bytes, version, changelog, created_at)`)
+    .eq('slug', slug).eq('status', 'approved').eq('product_files.is_current', true).single()
 
-  if (error || !product) {
-    notFound()
-  }
-
+  if (error || !product) notFound()
   const typedProduct = product as unknown as Product
 
   const { data: reviews } = await supabase
     .from('reviews')
-    .select(
-      `
-      id,
-      rating,
-      comment,
-      created_at,
-      buyer:users!buyer_id (
-        display_name,
-        avatar_url
-      )
-    `
-    )
-    .eq('product_id', typedProduct.id)
-    .order('created_at', { ascending: false })
-    .limit(20)
+    .select(`id, rating, comment, created_at, buyer:users!buyer_id(display_name, avatar_url)`)
+    .eq('product_id', typedProduct.id).order('created_at', { ascending: false }).limit(20)
 
   const typedReviews = (reviews ?? []) as unknown as Review[]
-
-  const currentFile =
-    typedProduct.product_files.length > 0
-      ? typedProduct.product_files[0]
-      : null
+  const currentFile = typedProduct.product_files.length > 0 ? typedProduct.product_files[0] : null
 
   return (
-    <main className="min-h-screen bg-[#050510] text-gray-100">
+    <main className="min-h-screen bg-white text-gray-900">
       {/* Breadcrumb */}
-      <div className="glass-nav">
+      <div className="border-b border-gray-100 bg-gray-50/50">
         <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
-          <nav className="flex items-center gap-2 text-sm text-gray-500">
-            <Link href="/" className="transition-colors hover:text-violet-400">
-              Home
-            </Link>
-            <span className="text-gray-700">/</span>
-            <Link
-              href={`/categories/${typedProduct.category.slug}`}
-              className="transition-colors hover:text-violet-400"
-            >
-              {typedProduct.category.name}
-            </Link>
-            <span className="text-gray-700">/</span>
-            <span className="text-gray-300">{typedProduct.title}</span>
+          <nav className="flex items-center gap-2 text-sm text-gray-400">
+            <Link href="/" className="hover:text-green-600 transition-colors">Home</Link>
+            <span>/</span>
+            <Link href={`/categories/${typedProduct.category.slug}`} className="hover:text-green-600 transition-colors">{typedProduct.category.name}</Link>
+            <span>/</span>
+            <span className="text-gray-700">{typedProduct.title}</span>
           </nav>
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <Link
-          href="/products"
-          className="mb-6 inline-flex items-center gap-2 text-sm text-gray-500 transition-colors hover:text-violet-400"
-        >
-          <ArrowLeft size={16} />
-          Back to Products
+        <Link href="/products" className="mb-6 inline-flex items-center gap-2 text-sm text-gray-400 hover:text-green-600 transition-colors">
+          <ArrowLeft size={16} /> Back to Products
         </Link>
 
         <div className="mt-4 grid grid-cols-1 gap-8 lg:grid-cols-3">
           {/* Left Column */}
           <div className="lg:col-span-2 space-y-8">
             {/* Thumbnail */}
-            <div className="relative aspect-video w-full overflow-hidden rounded-2xl glass-card p-0">
+            <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-gray-100 bg-gray-50">
               {typedProduct.thumbnail_url ? (
-                <Image
-                  src={typedProduct.thumbnail_url}
-                  alt={typedProduct.title}
-                  fill
-                  className="object-cover"
-                  priority
-                  sizes="(max-width: 1024px) 100vw, 66vw"
-                />
+                <Image src={typedProduct.thumbnail_url} alt={typedProduct.title} fill className="object-cover" priority sizes="(max-width: 1024px) 100vw, 66vw" />
               ) : (
-                <div className="flex h-full w-full items-center justify-center bg-[#0a0a1a]">
-                  <Code2 size={64} className="text-gray-700" />
-                </div>
+                <div className="flex h-full w-full items-center justify-center"><Code2 size={64} className="text-gray-200" /></div>
               )}
             </div>
 
             {/* Title + Stats */}
             <div>
-              <h1 className="text-3xl font-bold text-white tracking-tight">
-                {typedProduct.title}
-              </h1>
+              <h1 className="text-3xl font-bold tracking-tight">{typedProduct.title}</h1>
               <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-gray-400">
                 <div className="flex items-center gap-1.5">
                   <StarRating rating={typedProduct.avg_rating ?? 0} />
-                  <span className="font-medium text-gray-300">
-                    {typedProduct.avg_rating?.toFixed(1) ?? '0.0'}
-                  </span>
+                  <span className="font-medium text-gray-700">{typedProduct.avg_rating?.toFixed(1) ?? '0.0'}</span>
                   <span>({typedProduct.review_count} reviews)</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <Download size={14} className="text-gray-500" />
+                  <Download size={14} />
                   <span>{typedProduct.download_count.toLocaleString()} downloads</span>
                 </div>
               </div>
@@ -281,80 +184,49 @@ export default async function ProductPage({ params }: ProductPageProps) {
             {/* Tags */}
             {typedProduct.tags && typedProduct.tags.length > 0 && (
               <div className="flex flex-wrap items-center gap-2">
-                <Tag size={14} className="text-gray-600" />
+                <Tag size={14} className="text-gray-400" />
                 {typedProduct.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-full bg-violet-500/10 border border-violet-500/10 px-3 py-1 text-xs font-medium text-violet-300 transition-colors hover:bg-violet-500/20"
-                  >
-                    {tag}
-                  </span>
+                  <span key={tag} className="rounded-full bg-green-50 border border-green-100 px-3 py-1 text-xs font-medium text-green-700 hover:bg-green-100 transition-colors">{tag}</span>
                 ))}
               </div>
             )}
 
             {/* Version Info */}
             {currentFile && (
-              <div className="glass-card rounded-xl p-5">
-                <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-400">
-                  Current Version
-                </h2>
+              <div className="card rounded-xl p-5">
+                <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-400">Current Version</h2>
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                  <div>
-                    <p className="text-xs text-gray-500">Version</p>
-                    <p className="font-semibold text-gradient">{currentFile.version}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">File</p>
-                    <p className="font-medium text-gray-200 truncate">{currentFile.file_name}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Size</p>
-                    <p className="font-medium text-gray-200">{formatFileSize(currentFile.file_size_bytes)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Updated</p>
-                    <p className="font-medium text-gray-200">{formatDate(currentFile.created_at)}</p>
-                  </div>
+                  <div><p className="text-xs text-gray-400">Version</p><p className="font-semibold text-green-600">{currentFile.version}</p></div>
+                  <div><p className="text-xs text-gray-400">File</p><p className="font-medium text-gray-700 truncate">{currentFile.file_name}</p></div>
+                  <div><p className="text-xs text-gray-400">Size</p><p className="font-medium text-gray-700">{formatFileSize(currentFile.file_size_bytes)}</p></div>
+                  <div><p className="text-xs text-gray-400">Updated</p><p className="font-medium text-gray-700">{formatDate(currentFile.created_at)}</p></div>
                 </div>
                 {currentFile.changelog && (
-                  <div className="mt-4 border-t border-white/[0.04] pt-4">
-                    <p className="text-xs text-gray-500 mb-1">Changelog</p>
-                    <p className="text-sm text-gray-300">{currentFile.changelog}</p>
+                  <div className="mt-4 border-t border-gray-100 pt-4">
+                    <p className="text-xs text-gray-400 mb-1">Changelog</p>
+                    <p className="text-sm text-gray-600">{currentFile.changelog}</p>
                   </div>
                 )}
               </div>
             )}
 
             {/* Description */}
-            <div className="glass-card rounded-xl p-6">
-              <h2 className="mb-4 text-xl font-bold text-white">Description</h2>
+            <div className="card rounded-xl p-6">
+              <h2 className="mb-4 text-xl font-bold">Description</h2>
               <div
-                className="prose prose-invert prose-violet max-w-none
-                  prose-headings:text-gray-100
-                  prose-p:text-gray-300
-                  prose-a:text-violet-400 prose-a:no-underline hover:prose-a:underline
-                  prose-strong:text-gray-200
-                  prose-code:text-violet-300 prose-code:bg-violet-500/10 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5
-                  prose-pre:bg-[#0a0a1a] prose-pre:border prose-pre:border-white/[0.04]
-                  prose-li:text-gray-300
-                  prose-img:rounded-lg"
+                className="prose prose-gray max-w-none prose-headings:text-gray-900 prose-p:text-gray-600 prose-a:text-green-600 prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-800 prose-code:text-green-700 prose-code:bg-green-50 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-pre:bg-gray-50 prose-pre:border prose-pre:border-gray-100 prose-li:text-gray-600 prose-img:rounded-lg"
                 dangerouslySetInnerHTML={{ __html: typedProduct.description }}
               />
             </div>
 
             {/* Reviews */}
-            <div className="glass-card rounded-xl p-6">
+            <div className="card rounded-xl p-6">
               <div className="mb-6 flex items-center justify-between">
-                <h2 className="text-xl font-bold text-white">
-                  Reviews ({typedProduct.review_count})
-                </h2>
+                <h2 className="text-xl font-bold">Reviews ({typedProduct.review_count})</h2>
                 {typedProduct.avg_rating !== null && typedProduct.avg_rating > 0 && (
                   <div className="flex items-center gap-2">
                     <StarRating rating={typedProduct.avg_rating} size={20} />
-                    <span className="text-lg font-bold text-white">
-                      {typedProduct.avg_rating.toFixed(1)}
-                    </span>
+                    <span className="text-lg font-bold">{typedProduct.avg_rating.toFixed(1)}</span>
                   </div>
                 )}
               </div>
@@ -362,161 +234,92 @@ export default async function ProductPage({ params }: ProductPageProps) {
               {typedReviews.length > 0 ? (
                 <div className="space-y-6">
                   {typedReviews.map((review) => (
-                    <div
-                      key={review.id}
-                      className="border-b border-white/[0.04] pb-6 last:border-b-0 last:pb-0"
-                    >
+                    <div key={review.id} className="border-b border-gray-100 pb-6 last:border-b-0 last:pb-0">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
                           {review.buyer.avatar_url ? (
-                            <Image
-                              src={review.buyer.avatar_url}
-                              alt={review.buyer.display_name}
-                              width={36}
-                              height={36}
-                              className="rounded-full"
-                            />
+                            <Image src={review.buyer.avatar_url} alt={review.buyer.display_name} width={36} height={36} className="rounded-full" />
                           ) : (
-                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-violet-500/10">
-                              <User size={16} className="text-violet-400" />
-                            </div>
+                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-green-50"><User size={16} className="text-green-600" /></div>
                           )}
                           <div>
-                            <p className="font-medium text-gray-200">{review.buyer.display_name}</p>
-                            <p className="text-xs text-gray-500">{formatDate(review.created_at)}</p>
+                            <p className="font-medium text-gray-800">{review.buyer.display_name}</p>
+                            <p className="text-xs text-gray-400">{formatDate(review.created_at)}</p>
                           </div>
                         </div>
                         <StarRating rating={review.rating} size={14} />
                       </div>
-                      {review.comment && (
-                        <p className="mt-3 text-sm leading-relaxed text-gray-300">
-                          {review.comment}
-                        </p>
-                      )}
+                      {review.comment && <p className="mt-3 text-sm leading-relaxed text-gray-600">{review.comment}</p>}
                     </div>
                   ))}
                 </div>
               ) : (
                 <div className="py-12 text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-violet-500/10 flex items-center justify-center mx-auto mb-3">
-                    <Star size={24} className="text-gray-600" />
+                  <div className="w-16 h-16 rounded-2xl bg-green-50 flex items-center justify-center mx-auto mb-3">
+                    <Star size={24} className="text-gray-300" />
                   </div>
-                  <p className="text-gray-400">No reviews yet</p>
-                  <p className="mt-1 text-sm text-gray-500">Be the first to review this product</p>
+                  <p className="text-gray-500">No reviews yet</p>
+                  <p className="mt-1 text-sm text-gray-400">Be the first to review this product</p>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Right Column — Sticky sidebar */}
+          {/* Right Column */}
           <div className="space-y-6 lg:sticky lg:top-8 lg:self-start">
             {/* Purchase Card */}
-            <div className="glass-card rounded-2xl p-6 relative overflow-hidden">
-              {/* Subtle glow behind price */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-40 bg-violet-500/10 rounded-full blur-3xl pointer-events-none" />
-
-              <div className="mb-5 text-center relative">
-                <span className="text-4xl font-extrabold text-white tracking-tight">
-                  {formatPrice(typedProduct.price_cents)}
-                </span>
+            <div className="card rounded-2xl p-6">
+              <div className="mb-5 text-center">
+                <span className="text-4xl font-extrabold text-gray-900">{formatPrice(typedProduct.price_cents)}</span>
               </div>
-
               <Link
                 href={`/checkout/${typedProduct.slug}`}
-                className="btn-premium flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-base font-semibold text-white"
+                className="btn-primary flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-base font-semibold"
               >
-                <Shield size={18} />
-                Buy Now
+                <Shield size={18} /> Buy Now
               </Link>
-
               {typedProduct.demo_url && (
-                <a
-                  href={typedProduct.demo_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-glass mt-3 flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-medium text-gray-200"
-                >
-                  <ExternalLink size={16} />
-                  Live Demo
+                <a href={typedProduct.demo_url} target="_blank" rel="noopener noreferrer"
+                  className="btn-outline mt-3 flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-medium">
+                  <ExternalLink size={16} /> Live Demo
                 </a>
               )}
-
-              <div className="mt-5 space-y-3 border-t border-white/[0.04] pt-5">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">License</span>
-                  <span className="font-medium text-gray-200">Regular</span>
-                </div>
+              <div className="mt-5 space-y-3 border-t border-gray-100 pt-5">
+                <div className="flex items-center justify-between text-sm"><span className="text-gray-400">License</span><span className="font-medium text-gray-700">Regular</span></div>
                 {currentFile && (
                   <>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-500">Version</span>
-                      <span className="font-medium text-gray-200">{currentFile.version}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-500">File Size</span>
-                      <span className="font-medium text-gray-200">{formatFileSize(currentFile.file_size_bytes)}</span>
-                    </div>
+                    <div className="flex items-center justify-between text-sm"><span className="text-gray-400">Version</span><span className="font-medium text-gray-700">{currentFile.version}</span></div>
+                    <div className="flex items-center justify-between text-sm"><span className="text-gray-400">File Size</span><span className="font-medium text-gray-700">{formatFileSize(currentFile.file_size_bytes)}</span></div>
                   </>
                 )}
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">Last Updated</span>
-                  <span className="font-medium text-gray-200">{formatDate(typedProduct.updated_at)}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">Downloads</span>
-                  <span className="font-medium text-gray-200">{typedProduct.download_count.toLocaleString()}</span>
-                </div>
+                <div className="flex items-center justify-between text-sm"><span className="text-gray-400">Last Updated</span><span className="font-medium text-gray-700">{formatDate(typedProduct.updated_at)}</span></div>
+                <div className="flex items-center justify-between text-sm"><span className="text-gray-400">Downloads</span><span className="font-medium text-gray-700">{typedProduct.download_count.toLocaleString()}</span></div>
               </div>
             </div>
 
             {/* Seller Card */}
-            <div className="glass-card rounded-2xl p-6">
-              <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-400">
-                About the Seller
-              </h3>
+            <div className="card rounded-2xl p-6">
+              <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-400">About the Seller</h3>
               <div className="flex items-center gap-3">
                 {typedProduct.seller.avatar_url ? (
-                  <Image
-                    src={typedProduct.seller.avatar_url}
-                    alt={typedProduct.seller.display_name}
-                    width={48}
-                    height={48}
-                    className="rounded-full"
-                  />
+                  <Image src={typedProduct.seller.avatar_url} alt={typedProduct.seller.display_name} width={48} height={48} className="rounded-full" />
                 ) : (
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-violet-500/15">
-                    <User size={20} className="text-violet-400" />
-                  </div>
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-50"><User size={20} className="text-green-600" /></div>
                 )}
                 <div>
-                  <p className="font-semibold text-white">{typedProduct.seller.display_name}</p>
-                  <p className="text-xs text-gray-500">Seller</p>
+                  <p className="font-semibold text-gray-900">{typedProduct.seller.display_name}</p>
+                  <p className="text-xs text-gray-400">Seller</p>
                 </div>
               </div>
-              {typedProduct.seller.bio && (
-                <p className="mt-3 text-sm leading-relaxed text-gray-400">
-                  {typedProduct.seller.bio}
-                </p>
-              )}
-              <Link
-                href={`/sellers/${typedProduct.seller.id}`}
-                className="btn-glass mt-4 flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-gray-300 w-full"
-              >
-                View Profile
-              </Link>
+              {typedProduct.seller.bio && <p className="mt-3 text-sm leading-relaxed text-gray-500">{typedProduct.seller.bio}</p>}
+              <Link href={`/sellers/${typedProduct.seller.id}`} className="btn-outline mt-4 flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-medium w-full">View Profile</Link>
             </div>
 
             {/* Category */}
-            <div className="glass-card rounded-2xl p-6">
-              <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-400">
-                Category
-              </h3>
-              <Link
-                href={`/categories/${typedProduct.category.slug}`}
-                className="inline-flex items-center gap-2 rounded-full bg-violet-500/10 border border-violet-500/10 px-4 py-2 text-sm font-medium text-violet-300 transition-colors hover:bg-violet-500/20"
-              >
-                <Code2 size={14} />
-                {typedProduct.category.name}
+            <div className="card rounded-2xl p-6">
+              <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-400">Category</h3>
+              <Link href={`/categories/${typedProduct.category.slug}`} className="inline-flex items-center gap-2 rounded-full bg-green-50 border border-green-100 px-4 py-2 text-sm font-medium text-green-700 hover:bg-green-100 transition-colors">
+                <Code2 size={14} /> {typedProduct.category.name}
               </Link>
             </div>
           </div>

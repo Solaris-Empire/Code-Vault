@@ -67,13 +67,9 @@ function LoginFormContent() {
       if (res.ok) {
         const result = await res.json()
         const profile = result.data || result
-        if (profile.role === 'admin') {
-          window.location.href = '/admin'
-        } else if (profile.role === 'seller') {
-          window.location.href = '/seller/dashboard'
-        } else {
-          window.location.href = '/'
-        }
+        if (profile.role === 'admin') window.location.href = '/admin'
+        else if (profile.role === 'seller') window.location.href = '/seller/dashboard'
+        else window.location.href = '/'
       } else {
         window.location.href = '/'
       }
@@ -85,97 +81,69 @@ function LoginFormContent() {
   return (
     <div className="min-h-screen flex">
       {/* Left - Form */}
-      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 bg-[#050510] relative">
-        {/* Subtle ambient glow */}
-        <div className="glow-orb glow-orb-violet w-[400px] h-[400px] top-1/4 left-1/2 -translate-x-1/2 opacity-20" />
-
-        <div className="w-full max-w-md relative z-10">
+      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 bg-white">
+        <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <Link href="/" className="inline-flex items-center gap-3 group">
-              <div className="relative">
-                <Code2 className="h-10 w-10 text-violet-400" />
-                <div className="absolute inset-0 bg-violet-500/20 blur-lg rounded-full" />
-              </div>
-              <span className="text-2xl font-bold text-white tracking-tight">CodeVault</span>
+              <Code2 className="h-10 w-10 text-green-600" />
+              <span className="text-2xl font-bold text-gray-900 tracking-tight">CodeVault</span>
             </Link>
           </div>
 
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">Welcome back</h1>
-            <p className="text-gray-500">Sign in to your account</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">Welcome back</h1>
+            <p className="text-gray-400">Sign in to your account</p>
           </div>
 
-          <Card className="glass-card border-0 shadow-2xl shadow-violet-500/5">
+          <Card className="border-gray-200 bg-white shadow-sm">
             <CardContent className="p-6 sm:p-8">
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                 {error && (
-                  <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-                    {error}
-                  </div>
+                  <div className="p-4 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm">{error}</div>
                 )}
 
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-gray-300">Email</Label>
+                  <Label htmlFor="email" className="text-gray-700">Email</Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
                     <Input
-                      id="email"
-                      type="email"
-                      placeholder="you@example.com"
-                      className="pl-10 h-12 bg-white/[0.03] border-white/[0.06] text-white placeholder:text-gray-500 focus:border-violet-500/40 focus:ring-violet-500/20 rounded-xl"
+                      id="email" type="email" placeholder="you@example.com"
+                      className="pl-10 h-12 bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-green-400 focus:ring-green-200 rounded-xl"
                       {...register('email')}
                     />
                   </div>
-                  {errors.email && <p className="text-sm text-red-400">{errors.email.message}</p>}
+                  {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
                 </div>
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="password" className="text-gray-300">Password</Label>
-                    <Link href="/forgot-password" className="text-sm text-violet-400 hover:text-violet-300">
-                      Forgot password?
-                    </Link>
+                    <Label htmlFor="password" className="text-gray-700">Password</Label>
+                    <Link href="/forgot-password" className="text-sm text-green-600 hover:text-green-700">Forgot password?</Link>
                   </div>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
                     <Input
-                      id="password"
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder="Enter your password"
-                      className="pl-10 pr-10 h-12 bg-white/[0.03] border-white/[0.06] text-white placeholder:text-gray-500 focus:border-violet-500/40 focus:ring-violet-500/20 rounded-xl"
+                      id="password" type={showPassword ? 'text' : 'password'} placeholder="Enter your password"
+                      className="pl-10 pr-10 h-12 bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-green-400 focus:ring-green-200 rounded-xl"
                       {...register('password')}
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
-                    >
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                       {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                     </button>
                   </div>
-                  {errors.password && <p className="text-sm text-red-400">{errors.password.message}</p>}
+                  {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
                 </div>
 
-                <Button
-                  type="submit"
-                  className="w-full h-12 text-base font-semibold btn-premium rounded-xl border-0"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Signing in...</>
-                  ) : (
-                    <>Sign In <ArrowRight className="ml-2 h-5 w-5" /></>
-                  )}
+                <Button type="submit" className="w-full h-12 text-base font-semibold btn-primary rounded-xl border-0" disabled={isSubmitting}>
+                  {isSubmitting ? (<><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Signing in...</>) : (<>Sign In <ArrowRight className="ml-2 h-5 w-5" /></>)}
                 </Button>
               </form>
 
               <SocialLoginButtons />
 
               <div className="mt-6 text-center">
-                <span className="text-gray-500">Don&apos;t have an account? </span>
-                <Link href="/register" className="text-violet-400 hover:text-violet-300 font-semibold">
-                  Create one
-                </Link>
+                <span className="text-gray-400">Don&apos;t have an account? </span>
+                <Link href="/register" className="text-green-600 hover:text-green-700 font-semibold">Create one</Link>
               </div>
             </CardContent>
           </Card>
@@ -183,31 +151,25 @@ function LoginFormContent() {
       </div>
 
       {/* Right - Benefits */}
-      <div className="hidden lg:flex lg:flex-1 relative overflow-hidden">
-        {/* Premium gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-violet-800 to-purple-950" />
-        <div className="absolute inset-0 dot-pattern opacity-10" />
-
-        {/* Glow orbs */}
-        <div className="glow-orb w-[300px] h-[300px] top-20 left-20 bg-white/10 animate-pulse-glow" />
-        <div className="glow-orb w-[250px] h-[250px] bottom-20 right-20 bg-purple-400/20 animate-pulse-glow delay-1000" />
+      <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-green-500 via-green-600 to-emerald-700 relative overflow-hidden">
+        <div className="absolute top-20 left-20 w-32 h-32 bg-white/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 right-20 w-40 h-40 bg-emerald-300/20 rounded-full blur-3xl" />
 
         <div className="relative z-10 flex items-center justify-center w-full px-12">
           <div className="max-w-md">
             <h2 className="text-3xl font-bold text-white mb-4 tracking-tight">The Marketplace for Developers</h2>
-            <p className="text-violet-200 text-lg mb-8 leading-relaxed">
+            <p className="text-green-100 text-lg mb-8 leading-relaxed">
               Buy and sell premium code. Scripts, templates, themes, and plugins.
             </p>
-
             <div className="space-y-4">
               {benefits.map((benefit, index) => (
-                <div key={index} className="flex items-start gap-4 p-4 bg-white/[0.08] backdrop-blur-sm rounded-xl border border-white/[0.12] transition-all hover:bg-white/[0.12]">
-                  <div className="w-12 h-12 bg-white/[0.12] rounded-xl flex items-center justify-center shrink-0">
+                <div key={index} className="flex items-start gap-4 p-4 bg-white/10 backdrop-blur-sm rounded-xl border border-white/15 hover:bg-white/15 transition-all">
+                  <div className="w-12 h-12 bg-white/15 rounded-xl flex items-center justify-center shrink-0">
                     <benefit.icon className="h-6 w-6 text-white" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-white mb-1">{benefit.title}</h3>
-                    <p className="text-sm text-violet-200">{benefit.description}</p>
+                    <p className="text-sm text-green-100">{benefit.description}</p>
                   </div>
                 </div>
               ))}
@@ -221,11 +183,7 @@ function LoginFormContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-[#050510]">
-        <Loader2 className="h-10 w-10 animate-spin text-violet-500" />
-      </div>
-    }>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-white"><Loader2 className="h-10 w-10 animate-spin text-green-600" /></div>}>
       <LoginFormContent />
     </Suspense>
   )
