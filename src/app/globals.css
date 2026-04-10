@@ -1,85 +1,309 @@
 @import "tailwindcss";
 
+/* ============================================================================
+   CODEVAULT PREMIUM DESIGN SYSTEM
+   A dark, sophisticated palette with violet accents, glassmorphism,
+   animated gradients, and refined micro-interactions.
+   ============================================================================ */
+
 :root {
-  --background: #fff5eb;
-  --foreground: #171717;
+  --background: #050510;
+  --foreground: #e8e8f0;
+  --surface-1: #0a0a1a;
+  --surface-2: #111128;
+  --surface-3: #1a1a38;
+  --border: rgba(139, 92, 246, 0.08);
+  --border-hover: rgba(139, 92, 246, 0.25);
+  --glow-violet: rgba(139, 92, 246, 0.15);
+  --glow-purple: rgba(168, 85, 247, 0.12);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-white: #fff7ed;
-  --color-slate-50: #fff3e0;
-  --color-slate-100: #ffe8cc;
-  --color-gray-50: #fff8f0;
-  --color-gray-100: #ffe8cc;
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-cal), var(--font-inter), system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* ---- Base ---- */
 html {
   scroll-behavior: smooth;
 }
 
 body {
-  background: linear-gradient(135deg, #fff5eb 0%, #ffffff 30%, #fff0db 60%, #ffffff 80%, #ffedcc 100%);
-  background-attachment: fixed;
+  background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom animations */
+/* ---- Selection ---- */
+::selection {
+  background: rgba(139, 92, 246, 0.3);
+  color: #fff;
+}
+
+/* ============================================================================
+   GLASSMORPHISM UTILITIES
+   ============================================================================ */
+
+/* Glass card — primary card style across the site */
+.glass-card {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 15, 35, 0.8) 0%,
+    rgba(20, 20, 50, 0.6) 100%
+  );
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  border: 1px solid rgba(139, 92, 246, 0.08);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  border-color: rgba(139, 92, 246, 0.2);
+  box-shadow:
+    0 0 0 1px rgba(139, 92, 246, 0.05),
+    0 8px 40px -12px rgba(139, 92, 246, 0.15),
+    0 0 80px -40px rgba(139, 92, 246, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Glass nav — lighter glass for navigation */
+.glass-nav {
+  background: rgba(5, 5, 16, 0.7);
+  backdrop-filter: blur(24px) saturate(1.8);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.06);
+}
+
+/* Glass surface — for panels, sidebars */
+.glass-surface {
+  background: linear-gradient(
+    180deg,
+    rgba(15, 15, 35, 0.6) 0%,
+    rgba(10, 10, 26, 0.8) 100%
+  );
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(139, 92, 246, 0.06);
+}
+
+/* ============================================================================
+   GRADIENT UTILITIES
+   ============================================================================ */
+
+/* Premium text gradient */
+.text-gradient {
+  background: linear-gradient(135deg, #a78bfa 0%, #c084fc 50%, #818cf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Vibrant text gradient for hero headings */
+.text-gradient-hero {
+  background: linear-gradient(135deg, #c4b5fd 0%, #e879f9 40%, #a78bfa 70%, #67e8f9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Gradient border effect — apply to a wrapper with padding */
+.gradient-border {
+  position: relative;
+}
+
+.gradient-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(168, 85, 247, 0.1), rgba(139, 92, 246, 0.3));
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* ============================================================================
+   GLOW & LIGHT EFFECTS
+   ============================================================================ */
+
+/* Ambient glow behind hero sections */
+.glow-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.glow-orb-violet {
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.4) 0%, transparent 70%);
+}
+
+.glow-orb-purple {
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.3) 0%, transparent 70%);
+}
+
+.glow-orb-cyan {
+  background: radial-gradient(circle, rgba(103, 232, 249, 0.2) 0%, transparent 70%);
+}
+
+/* Subtle noise texture overlay for premium depth */
+.noise-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ============================================================================
+   BUTTON STYLES
+   ============================================================================ */
+
+/* Premium CTA button with animated glow */
+.btn-premium {
+  position: relative;
+  background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 50%, #6d28d9 100%);
+  box-shadow:
+    0 0 20px -5px rgba(139, 92, 246, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-premium:hover {
+  box-shadow:
+    0 0 30px -5px rgba(139, 92, 246, 0.6),
+    0 10px 40px -10px rgba(139, 92, 246, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+.btn-premium:active {
+  transform: translateY(0);
+}
+
+/* Secondary glass button */
+.btn-glass {
+  background: rgba(139, 92, 246, 0.08);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  backdrop-filter: blur(12px);
+  transition: all 0.3s ease;
+}
+
+.btn-glass:hover {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.3);
+  box-shadow: 0 0 20px -8px rgba(139, 92, 246, 0.3);
+}
+
+/* ============================================================================
+   ANIMATIONS
+   ============================================================================ */
+
+/* Slow floating for decorative elements */
 @keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-20px);
-  }
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
 }
 
-@keyframes bounce-slow {
-  0%, 100% {
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-15px) rotate(1deg); }
+  66% { transform: translateY(-8px) rotate(-1deg); }
+}
+
+/* Pulsing glow for orbs */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.05); }
+}
+
+/* Gradient shift for animated backgrounds */
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Subtle shimmer for loading/accent */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Fade in up for page transitions */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
     transform: translateY(0);
   }
-  50% {
-    transform: translateY(-10px);
-  }
 }
 
-.animate-float {
-  animation: float 6s ease-in-out infinite;
+/* Marquee scrolling */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
 
-.animate-bounce-slow {
-  animation: bounce-slow 3s ease-in-out infinite;
+.animate-float { animation: float 6s ease-in-out infinite; }
+.animate-float-slow { animation: float-slow 8s ease-in-out infinite; }
+.animate-pulse-glow { animation: pulse-glow 4s ease-in-out infinite; }
+.animate-gradient { animation: gradient-shift 8s ease infinite; background-size: 200% 200%; }
+.animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; }
+.animate-marquee { animation: marquee 30s linear infinite; }
+.animate-marquee:hover { animation-play-state: paused; }
+
+/* Stagger delays */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-500 { animation-delay: 500ms; }
+.delay-700 { animation-delay: 700ms; }
+.delay-1000 { animation-delay: 1000ms; }
+
+/* ============================================================================
+   SCROLLBAR
+   ============================================================================ */
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+  width: 8px;
 }
 
-.delay-300 {
-  animation-delay: 300ms;
+::-webkit-scrollbar-track {
+  background: var(--background);
 }
 
-.delay-500 {
-  animation-delay: 500ms;
+::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.2);
+  border-radius: 4px;
 }
 
-.delay-700 {
-  animation-delay: 700ms;
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.4);
 }
 
-.delay-1000 {
-  animation-delay: 1000ms;
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139, 92, 246, 0.2) transparent;
 }
 
-/* Hide scrollbar but allow scrolling */
+/* Hide scrollbar utility */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -89,20 +313,80 @@ body {
   display: none;
 }
 
-/* Marquee scrolling animation */
-@keyframes marquee {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
+/* ============================================================================
+   PRODUCT CARD PREMIUM HOVER
+   ============================================================================ */
+
+.product-card {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.animate-marquee {
-  animation: marquee 30s linear infinite;
+.product-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(139, 92, 246, 0.03) 0%,
+    transparent 50%,
+    rgba(139, 92, 246, 0.03) 100%
+  );
+  transition: opacity 0.4s ease;
+  z-index: 1;
+  pointer-events: none;
 }
 
-.animate-marquee:hover {
-  animation-play-state: paused;
+.product-card:hover::before {
+  opacity: 1;
+}
+
+.product-card:hover {
+  border-color: rgba(139, 92, 246, 0.2);
+  box-shadow:
+    0 0 0 1px rgba(139, 92, 246, 0.05),
+    0 20px 50px -15px rgba(0, 0, 0, 0.5),
+    0 0 60px -30px rgba(139, 92, 246, 0.15);
+  transform: translateY(-4px);
+}
+
+/* Shine sweep on card hover */
+.product-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(139, 92, 246, 0.04) 50%,
+    transparent 100%
+  );
+  transition: left 0.6s ease;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.product-card:hover::after {
+  left: 120%;
+}
+
+/* ============================================================================
+   MISC UTILITIES
+   ============================================================================ */
+
+/* Dot grid pattern background */
+.dot-pattern {
+  background-image: radial-gradient(rgba(139, 92, 246, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Line pattern */
+.line-pattern {
+  background-image: linear-gradient(rgba(139, 92, 246, 0.04) 1px, transparent 1px);
+  background-size: 100% 48px;
 }

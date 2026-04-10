@@ -5,11 +5,12 @@ import './globals.css'
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
+  display: 'swap',
 })
 
 export const metadata: Metadata = {
   title: {
-    default: 'CodeVault - Digital Code Marketplace',
+    default: 'CodeVault - Premium Digital Code Marketplace',
     template: '%s | CodeVault',
   },
   description:
@@ -37,8 +38,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={`${inter.variable} font-sans antialiased`}>
+    <html lang="en" className="dark">
+      <body className={`${inter.variable} font-sans antialiased bg-[#050510] text-gray-100`}>
         <main id="main-content">{children}</main>
       </body>
     </html>

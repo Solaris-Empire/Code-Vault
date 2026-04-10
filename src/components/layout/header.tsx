@@ -48,7 +48,6 @@ export function Header() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -79,15 +78,18 @@ export function Header() {
 
   return (
     <header className={cn(
-      'bg-gray-950/80 backdrop-blur-md border-b border-gray-800 w-full z-40 transition-shadow',
-      isScrolled ? 'sticky top-0 shadow-lg shadow-black/20' : ''
+      'glass-nav w-full z-40 transition-all duration-300',
+      isScrolled ? 'sticky top-0 shadow-2xl shadow-black/30' : ''
     )}>
       <div className="container mx-auto px-4">
         <div className="flex items-center h-16 gap-4">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 shrink-0">
-            <Code2 className="h-7 w-7 text-violet-500" />
-            <span className="text-xl font-bold text-white">CodeVault</span>
+          <Link href="/" className="flex items-center gap-2.5 shrink-0">
+            <div className="relative">
+              <Code2 className="h-7 w-7 text-violet-400" />
+              <div className="absolute inset-0 bg-violet-500/20 blur-lg rounded-full" />
+            </div>
+            <span className="text-xl font-bold text-white tracking-tight">CodeVault</span>
           </Link>
 
           {/* Nav Links - Desktop */}
@@ -95,8 +97,10 @@ export function Header() {
             <Link
               href="/products"
               className={cn(
-                'px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                pathname === '/products' ? 'text-violet-400 bg-violet-500/10' : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                'px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-200',
+                pathname === '/products'
+                  ? 'text-violet-300 bg-violet-500/10'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
               )}
             >
               Browse
@@ -104,8 +108,10 @@ export function Header() {
             <Link
               href="/categories"
               className={cn(
-                'px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                pathname === '/categories' ? 'text-violet-400 bg-violet-500/10' : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                'px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-200',
+                pathname === '/categories'
+                  ? 'text-violet-300 bg-violet-500/10'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
               )}
             >
               Categories
@@ -114,7 +120,7 @@ export function Header() {
 
           {/* Search - Desktop */}
           <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xl mx-4">
-            <div className="flex w-full border border-gray-700 rounded-lg overflow-hidden bg-gray-900 focus-within:border-violet-500 transition-colors">
+            <div className="flex w-full rounded-xl overflow-hidden glass-surface focus-within:border-violet-500/30 transition-all">
               <Input
                 type="search"
                 placeholder="Search scripts, templates, plugins..."
@@ -122,7 +128,7 @@ export function Header() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="flex-1 border-0 h-10 px-4 focus-visible:ring-0 focus-visible:ring-offset-0 text-sm bg-transparent text-white placeholder:text-gray-500"
               />
-              <Button type="submit" className="bg-violet-600 hover:bg-violet-700 rounded-none px-4 h-10 border-0">
+              <Button type="submit" className="bg-violet-600 hover:bg-violet-500 rounded-none px-4 h-10 border-0 transition-colors">
                 <Search className="h-4 w-4" />
               </Button>
             </div>
@@ -133,32 +139,32 @@ export function Header() {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">
+                  <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">
                     <User className="h-5 w-5" />
                     <span className="hidden sm:inline text-sm">Account</span>
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48 bg-gray-900 border-gray-700 text-white">
-                  <div className="px-3 py-2 border-b border-gray-700">
+                <DropdownMenuContent align="end" className="w-48 bg-[#0e0e2a] border-violet-500/10 text-white backdrop-blur-xl">
+                  <div className="px-3 py-2 border-b border-white/[0.04]">
                     <p className="text-sm font-medium truncate">{user.email}</p>
                   </div>
-                  <DropdownMenuItem asChild className="hover:bg-gray-800 focus:bg-gray-800">
+                  <DropdownMenuItem asChild className="hover:bg-violet-500/10 focus:bg-violet-500/10">
                     <Link href="/dashboard" className="flex items-center gap-2">
                       <LayoutDashboard className="h-4 w-4" /> Dashboard
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="hover:bg-gray-800 focus:bg-gray-800">
+                  <DropdownMenuItem asChild className="hover:bg-violet-500/10 focus:bg-violet-500/10">
                     <Link href="/dashboard/purchases" className="flex items-center gap-2">
                       <Package className="h-4 w-4" /> My Purchases
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="hover:bg-gray-800 focus:bg-gray-800">
+                  <DropdownMenuItem asChild className="hover:bg-violet-500/10 focus:bg-violet-500/10">
                     <Link href="/seller/dashboard" className="flex items-center gap-2">
                       <FileCode className="h-4 w-4" /> Seller Dashboard
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-gray-700" />
-                  <DropdownMenuItem onClick={signOut} className="text-red-400 hover:bg-gray-800 focus:bg-gray-800">
+                  <DropdownMenuSeparator className="bg-white/[0.04]" />
+                  <DropdownMenuItem onClick={signOut} className="text-red-400 hover:bg-red-500/10 focus:bg-red-500/10">
                     <LogOut className="h-4 w-4 mr-2" /> Sign Out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -170,7 +176,7 @@ export function Header() {
                 </Link>
                 <Link
                   href="/register"
-                  className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                  className="btn-premium text-white px-5 py-2 rounded-lg text-sm font-medium"
                 >
                   Get Started
                 </Link>
@@ -184,17 +190,17 @@ export function Header() {
                   <Menu className="h-6 w-6" />
                 </button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-[300px] bg-gray-950 border-gray-800 text-white p-0">
-                <SheetHeader className="p-4 border-b border-gray-800">
+              <SheetContent side="left" className="w-[300px] bg-[#0a0a1a] border-violet-500/10 text-white p-0">
+                <SheetHeader className="p-4 border-b border-white/[0.04]">
                   <SheetTitle className="flex items-center gap-2 text-white">
-                    <Code2 className="h-6 w-6 text-violet-500" />
+                    <Code2 className="h-6 w-6 text-violet-400" />
                     <span className="font-bold">CodeVault</span>
                   </SheetTitle>
                 </SheetHeader>
 
                 {/* Mobile Search */}
                 <form onSubmit={handleSearch} className="px-4 py-3">
-                  <div className="flex border border-gray-700 rounded-lg overflow-hidden bg-gray-900">
+                  <div className="flex rounded-xl overflow-hidden glass-surface">
                     <Input
                       type="search"
                       placeholder="Search..."
@@ -202,7 +208,7 @@ export function Header() {
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="flex-1 border-0 h-10 px-4 focus-visible:ring-0 text-sm bg-transparent text-white"
                     />
-                    <Button type="submit" size="sm" className="bg-violet-600 hover:bg-violet-700 rounded-none h-10 px-3">
+                    <Button type="submit" size="sm" className="bg-violet-600 hover:bg-violet-500 rounded-none h-10 px-3">
                       <Search className="h-4 w-4" />
                     </Button>
                   </div>
@@ -213,8 +219,8 @@ export function Header() {
                     href="/products"
                     onClick={() => setMobileMenuOpen(false)}
                     className={cn(
-                      'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
-                      pathname === '/products' ? 'bg-violet-500/10 text-violet-400' : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                      'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all',
+                      pathname === '/products' ? 'bg-violet-500/10 text-violet-300' : 'text-gray-400 hover:bg-white/5 hover:text-white'
                     )}
                   >
                     <span className="text-sm font-medium">Browse All</span>
@@ -223,8 +229,8 @@ export function Header() {
                     href="/categories"
                     onClick={() => setMobileMenuOpen(false)}
                     className={cn(
-                      'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
-                      pathname === '/categories' ? 'bg-violet-500/10 text-violet-400' : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                      'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all',
+                      pathname === '/categories' ? 'bg-violet-500/10 text-violet-300' : 'text-gray-400 hover:bg-white/5 hover:text-white'
                     )}
                   >
                     <span className="text-sm font-medium">Categories</span>
@@ -239,7 +245,7 @@ export function Header() {
                       key={category.slug}
                       href={`/categories/${category.slug}`}
                       onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors"
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-white/5 hover:text-white transition-all"
                     >
                       <span className="text-sm font-medium">{category.name}</span>
                     </Link>

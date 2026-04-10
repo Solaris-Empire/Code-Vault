@@ -87,17 +87,17 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-950 px-4">
-        <Card className="w-full max-w-md border-gray-800 bg-gray-900">
+      <div className="min-h-screen flex items-center justify-center bg-[#050510] px-4">
+        <Card className="w-full max-w-md glass-card border-0">
           <CardContent className="p-8 text-center">
             <div className="w-20 h-20 bg-violet-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle2 className="h-10 w-10 text-violet-500" />
+              <CheckCircle2 className="h-10 w-10 text-violet-400" />
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2">Check your email</h2>
+            <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">Check your email</h2>
             <p className="text-gray-400 mb-8">
               We&apos;ve sent a confirmation link. Please check your email to verify your account.
             </p>
-            <Button asChild className="w-full h-12 bg-violet-600 hover:bg-violet-700">
+            <Button asChild className="w-full h-12 btn-premium rounded-xl border-0">
               <Link href="/login">
                 Back to Sign In <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
@@ -111,20 +111,22 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left - Benefits */}
-      <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-violet-600 via-violet-700 to-purple-900 relative overflow-hidden">
-        <div className="absolute top-20 left-20 w-32 h-32 bg-white/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-20 w-40 h-40 bg-purple-400/20 rounded-full blur-3xl" />
+      <div className="hidden lg:flex lg:flex-1 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-violet-800 to-purple-950" />
+        <div className="absolute inset-0 dot-pattern opacity-10" />
+        <div className="glow-orb w-[300px] h-[300px] top-20 left-20 bg-white/10 animate-pulse-glow" />
+        <div className="glow-orb w-[250px] h-[250px] bottom-20 right-20 bg-purple-400/20 animate-pulse-glow delay-1000" />
 
         <div className="relative z-10 flex items-center justify-center w-full px-12">
           <div className="max-w-md">
-            <h2 className="text-3xl font-bold text-white mb-4">Join CodeVault</h2>
-            <p className="text-violet-200 text-lg mb-8">
+            <h2 className="text-3xl font-bold text-white mb-4 tracking-tight">Join CodeVault</h2>
+            <p className="text-violet-200 text-lg mb-8 leading-relaxed">
               Create an account to buy premium code or start selling and earning.
             </p>
             <div className="space-y-4">
               {benefits.map((benefit, index) => (
-                <div key={index} className="flex items-start gap-4 p-4 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
-                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
+                <div key={index} className="flex items-start gap-4 p-4 bg-white/[0.08] backdrop-blur-sm rounded-xl border border-white/[0.12] transition-all hover:bg-white/[0.12]">
+                  <div className="w-12 h-12 bg-white/[0.12] rounded-xl flex items-center justify-center shrink-0">
                     <benefit.icon className="h-6 w-6 text-white" />
                   </div>
                   <div>
@@ -139,21 +141,26 @@ export default function RegisterPage() {
       </div>
 
       {/* Right - Form */}
-      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 bg-gray-950">
-        <div className="w-full max-w-md">
+      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 bg-[#050510] relative">
+        <div className="glow-orb glow-orb-violet w-[400px] h-[400px] top-1/4 left-1/2 -translate-x-1/2 opacity-20" />
+
+        <div className="w-full max-w-md relative z-10">
           <div className="text-center mb-8">
             <Link href="/" className="inline-flex items-center gap-3 group">
-              <Code2 className="h-10 w-10 text-violet-500" />
-              <span className="text-2xl font-bold text-white">CodeVault</span>
+              <div className="relative">
+                <Code2 className="h-10 w-10 text-violet-400" />
+                <div className="absolute inset-0 bg-violet-500/20 blur-lg rounded-full" />
+              </div>
+              <span className="text-2xl font-bold text-white tracking-tight">CodeVault</span>
             </Link>
           </div>
 
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">Create an account</h1>
-            <p className="text-gray-400">Join the marketplace for developers</p>
+            <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">Create an account</h1>
+            <p className="text-gray-500">Join the marketplace for developers</p>
           </div>
 
-          <Card className="border-gray-800 bg-gray-900">
+          <Card className="glass-card border-0 shadow-2xl shadow-violet-500/5">
             <CardContent className="p-6 sm:p-8">
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                 {error && (
@@ -170,7 +177,7 @@ export default function RegisterPage() {
                       id="displayName"
                       type="text"
                       placeholder="Your name"
-                      className="pl-10 h-12 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus:border-violet-500"
+                      className="pl-10 h-12 bg-white/[0.03] border-white/[0.06] text-white placeholder:text-gray-500 focus:border-violet-500/40 focus:ring-violet-500/20 rounded-xl"
                       {...register('displayName')}
                     />
                   </div>
@@ -185,7 +192,7 @@ export default function RegisterPage() {
                       id="email"
                       type="email"
                       placeholder="you@example.com"
-                      className="pl-10 h-12 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus:border-violet-500"
+                      className="pl-10 h-12 bg-white/[0.03] border-white/[0.06] text-white placeholder:text-gray-500 focus:border-violet-500/40 focus:ring-violet-500/20 rounded-xl"
                       {...register('email')}
                     />
                   </div>
@@ -200,7 +207,7 @@ export default function RegisterPage() {
                       id="password"
                       type={showPassword ? 'text' : 'password'}
                       placeholder="Create a password"
-                      className="pl-10 pr-10 h-12 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus:border-violet-500"
+                      className="pl-10 pr-10 h-12 bg-white/[0.03] border-white/[0.06] text-white placeholder:text-gray-500 focus:border-violet-500/40 focus:ring-violet-500/20 rounded-xl"
                       {...register('password')}
                     />
                     <button
@@ -217,7 +224,7 @@ export default function RegisterPage() {
                       {passwordRequirements.map((req, index) => {
                         const isValid = req.regex.test(password)
                         return (
-                          <div key={index} className={`flex items-center gap-1.5 text-xs ${isValid ? 'text-green-400' : 'text-gray-500'}`}>
+                          <div key={index} className={`flex items-center gap-1.5 text-xs ${isValid ? 'text-emerald-400' : 'text-gray-500'}`}>
                             {isValid ? <Check className="h-3.5 w-3.5" /> : <X className="h-3.5 w-3.5" />}
                             {req.label}
                           </div>
@@ -236,7 +243,7 @@ export default function RegisterPage() {
                       id="confirmPassword"
                       type="password"
                       placeholder="Confirm your password"
-                      className="pl-10 h-12 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus:border-violet-500"
+                      className="pl-10 h-12 bg-white/[0.03] border-white/[0.06] text-white placeholder:text-gray-500 focus:border-violet-500/40 focus:ring-violet-500/20 rounded-xl"
                       {...register('confirmPassword')}
                     />
                   </div>
@@ -245,7 +252,7 @@ export default function RegisterPage() {
 
                 <Button
                   type="submit"
-                  className="w-full h-12 text-base font-semibold bg-violet-600 hover:bg-violet-700"
+                  className="w-full h-12 text-base font-semibold btn-premium rounded-xl border-0"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
