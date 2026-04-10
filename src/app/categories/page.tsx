@@ -62,7 +62,7 @@ export default async function CategoriesPage() {
         <div className="container mx-auto px-4">
           {safeCategories.length === 0 ? (
             <div className="text-center py-20">
-              <div className="w-20 h-20 rounded-2xl bg-green-50 flex items-center justify-center mx-auto mb-5">
+              <div className="w-20 h-20 rounded-none bg-green-50 flex items-center justify-center mx-auto mb-5">
                 <FolderOpen className="h-10 w-10 text-gray-300" />
               </div>
               <h2 className="text-xl font-semibold text-gray-500">No categories yet</h2>
@@ -76,7 +76,7 @@ export default async function CategoriesPage() {
                   <Link
                     key={category.id}
                     href={`/categories/${category.slug}`}
-                    className="card group rounded-xl p-5 md:p-6"
+                    className="card group rounded-none p-5 md:p-6"
                   >
                     <div className="text-3xl mb-3">{category.icon || '📦'}</div>
                     <h3 className="font-semibold text-gray-900 group-hover:text-green-700 transition-colors">

@@ -136,12 +136,12 @@ export default async function ProductsPage({
             <span className="text-xl font-bold tracking-tight">CodeVault</span>
           </Link>
           <div className="hidden md:flex items-center gap-1">
-            <Link href="/products" className="text-green-700 bg-green-50 px-3.5 py-2 rounded-lg text-sm font-medium">Browse</Link>
-            <Link href="/categories" className="text-gray-600 hover:text-green-700 hover:bg-green-50 px-3.5 py-2 rounded-lg text-sm font-medium transition-all">Categories</Link>
+            <Link href="/products" className="text-green-700 bg-green-50 px-3.5 py-2 rounded-none text-sm font-medium">Browse</Link>
+            <Link href="/categories" className="text-gray-600 hover:text-green-700 hover:bg-green-50 px-3.5 py-2 rounded-none text-sm font-medium transition-all">Categories</Link>
           </div>
           <div className="flex items-center gap-3">
             <Link href="/login" className="text-gray-600 hover:text-gray-900 transition-colors text-sm">Sign In</Link>
-            <Link href="/register" className="btn-primary text-white px-5 py-2 rounded-lg text-sm font-medium">Get Started</Link>
+            <Link href="/register" className="btn-primary text-white px-5 py-2 rounded-none text-sm font-medium">Get Started</Link>
           </div>
         </div>
       </nav>
@@ -170,10 +170,10 @@ export default async function ProductsPage({
                 name="search"
                 defaultValue={searchQuery}
                 placeholder="Search products..."
-                className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-200 transition-all"
+                className="w-full bg-white border border-gray-200 rounded-none pl-10 pr-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-200 transition-all"
               />
             </div>
-            <button type="submit" className="btn-primary text-white px-6 py-3 rounded-xl text-sm font-medium">Search</button>
+            <button type="submit" className="btn-primary text-white px-6 py-3 rounded-none text-sm font-medium">Search</button>
           </form>
         </div>
       </section>
@@ -192,7 +192,7 @@ export default async function ProductsPage({
                   <Link
                     key={option.value}
                     href={buildUrl({ sort: option.value === 'newest' ? undefined : option.value })}
-                    className={`text-sm px-3.5 py-2 rounded-lg transition-all ${
+                    className={`text-sm px-3.5 py-2 rounded-none transition-all ${
                       sortValue === option.value
                         ? 'bg-green-600 text-white'
                         : 'bg-white border border-gray-200 text-gray-600 hover:text-green-700 hover:border-green-200 hover:bg-green-50'
@@ -211,7 +211,7 @@ export default async function ProductsPage({
               <div className="flex flex-wrap lg:flex-col gap-2">
                 <Link
                   href={buildUrl({ category: undefined })}
-                  className={`text-sm px-3.5 py-2 rounded-lg transition-all ${
+                  className={`text-sm px-3.5 py-2 rounded-none transition-all ${
                     !categorySlug ? 'bg-green-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:text-green-700 hover:border-green-200 hover:bg-green-50'
                   }`}
                 >
@@ -221,7 +221,7 @@ export default async function ProductsPage({
                   <Link
                     key={cat.id}
                     href={buildUrl({ category: cat.slug })}
-                    className={`text-sm px-3.5 py-2 rounded-lg transition-all flex items-center gap-2 ${
+                    className={`text-sm px-3.5 py-2 rounded-none transition-all flex items-center gap-2 ${
                       categorySlug === cat.slug ? 'bg-green-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:text-green-700 hover:border-green-200 hover:bg-green-50'
                     }`}
                   >
@@ -238,7 +238,7 @@ export default async function ProductsPage({
               </h3>
               <Link
                 href={buildUrl({ featured: featuredOnly ? undefined : 'true' })}
-                className={`text-sm px-3.5 py-2 rounded-lg transition-all inline-flex items-center gap-2 ${
+                className={`text-sm px-3.5 py-2 rounded-none transition-all inline-flex items-center gap-2 ${
                   featuredOnly ? 'bg-green-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:text-green-700 hover:border-green-200 hover:bg-green-50'
                 }`}
               >
@@ -259,7 +259,7 @@ export default async function ProductsPage({
 
             {safeProducts.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center">
-                <div className="w-20 h-20 rounded-2xl bg-green-50 flex items-center justify-center mb-5">
+                <div className="w-20 h-20 rounded-none bg-green-50 flex items-center justify-center mb-5">
                   <Package className="h-10 w-10 text-gray-300" />
                 </div>
                 <h2 className="text-xl font-semibold mb-2 text-gray-900">No products found</h2>
@@ -268,7 +268,7 @@ export default async function ProductsPage({
                     ? `We couldn't find any products matching "${searchQuery}". Try adjusting your search or filters.`
                     : 'No products match your current filters. Try selecting a different category or removing filters.'}
                 </p>
-                <Link href="/products" className="btn-primary text-white px-6 py-2.5 rounded-xl text-sm font-medium">
+                <Link href="/products" className="btn-primary text-white px-6 py-2.5 rounded-none text-sm font-medium">
                   Clear All Filters
                 </Link>
               </div>
@@ -283,7 +283,7 @@ export default async function ProductsPage({
                         <div className="w-full h-full flex items-center justify-center"><Code2 className="h-10 w-10 text-gray-300" /></div>
                       )}
                       {product.is_featured && (
-                        <div className="absolute top-3 left-3 bg-green-600 text-white text-xs font-medium px-2.5 py-1 rounded-full flex items-center gap-1">
+                        <div className="absolute top-3 left-3 bg-green-600 text-white text-xs font-medium px-2.5 py-1 rounded-none flex items-center gap-1">
                           <Sparkles className="h-3 w-3" /> Featured
                         </div>
                       )}
@@ -292,7 +292,7 @@ export default async function ProductsPage({
                       <h3 className="font-semibold text-gray-900 group-hover:text-green-700 transition-colors line-clamp-1">{product.title}</h3>
                       <p className="text-gray-400 text-sm mt-1 line-clamp-1">by {product.seller?.display_name || 'Unknown Seller'}</p>
                       {product.category && (
-                        <span className="inline-block mt-2 text-xs bg-gray-100 text-gray-500 px-2.5 py-0.5 rounded-full">{product.category.name}</span>
+                        <span className="inline-block mt-2 text-xs bg-gray-100 text-gray-500 px-2.5 py-0.5 rounded-none">{product.category.name}</span>
                       )}
                       <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
                         <span className="text-lg font-bold text-green-600">${(product.price_cents / 100).toFixed(2)}</span>

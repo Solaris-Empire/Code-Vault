@@ -54,10 +54,10 @@ export default async function HomePage() {
             <span className="text-xl font-bold tracking-tight text-gray-900">CodeVault</span>
           </Link>
           <div className="hidden md:flex items-center gap-1">
-            <Link href="/products" className="px-4 py-2 text-sm text-gray-600 hover:text-green-700 rounded-lg hover:bg-green-50 transition-all">
+            <Link href="/products" className="px-4 py-2 text-sm text-gray-600 hover:text-green-700 rounded-none hover:bg-green-50 transition-all">
               Browse
             </Link>
-            <Link href="/categories" className="px-4 py-2 text-sm text-gray-600 hover:text-green-700 rounded-lg hover:bg-green-50 transition-all">
+            <Link href="/categories" className="px-4 py-2 text-sm text-gray-600 hover:text-green-700 rounded-none hover:bg-green-50 transition-all">
               Categories
             </Link>
           </div>
@@ -65,7 +65,7 @@ export default async function HomePage() {
             <Link href="/login" className="text-gray-600 hover:text-gray-900 transition-colors text-sm">
               Sign In
             </Link>
-            <Link href="/register" className="btn-primary text-white px-5 py-2 rounded-lg text-sm font-medium">
+            <Link href="/register" className="btn-primary text-white px-5 py-2 rounded-none text-sm font-medium">
               Get Started
             </Link>
           </div>
@@ -76,12 +76,12 @@ export default async function HomePage() {
       <section className="relative overflow-hidden pt-20 pb-24 md:pt-28 md:pb-32">
         {/* Soft green gradient background */}
         <div className="absolute inset-0 bg-gradient-to-b from-green-50 via-white to-white" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-green-100/50 rounded-full blur-3xl" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-green-100/50 rounded-none blur-3xl" />
 
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-3xl mx-auto text-center">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 bg-green-50 border border-green-200 rounded-full px-5 py-2 mb-8">
+            <div className="inline-flex items-center gap-2 bg-green-50 border border-green-200 rounded-none px-5 py-2 mb-8">
               <Zap className="h-4 w-4 text-green-600" />
               <span className="text-sm text-green-700 font-medium">The marketplace for developers</span>
             </div>
@@ -103,14 +103,14 @@ export default async function HomePage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/products"
-                className="btn-primary inline-flex items-center justify-center gap-2 text-white px-8 py-3.5 rounded-xl font-semibold text-base"
+                className="btn-primary inline-flex items-center justify-center gap-2 text-white px-8 py-3.5 rounded-none font-semibold text-base"
               >
                 Browse Marketplace
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href="/register?role=seller"
-                className="btn-outline inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl font-semibold text-base"
+                className="btn-outline inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-none font-semibold text-base"
               >
                 Start Selling
                 <FileCode className="h-4 w-4" />
@@ -147,7 +147,7 @@ export default async function HomePage() {
               { value: '4.9', label: 'Avg Rating', icon: Star },
             ].map((stat) => (
               <div key={stat.label} className="flex flex-col items-center group">
-                <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center mb-3 group-hover:bg-green-100 transition-colors">
+                <div className="w-10 h-10 rounded-none bg-green-50 flex items-center justify-center mb-3 group-hover:bg-green-100 transition-colors">
                   <stat.icon className="h-5 w-5 text-green-600" />
                 </div>
                 <span className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900">{stat.value}</span>
@@ -180,7 +180,7 @@ export default async function HomePage() {
               <Link
                 key={category.id}
                 href={`/categories/${category.slug}`}
-                className="card group rounded-xl p-5 md:p-6"
+                className="card group rounded-none p-5 md:p-6"
               >
                 <div className="text-2xl md:text-3xl mb-3">{category.icon || '📦'}</div>
                 <h3 className="font-semibold text-gray-900 group-hover:text-green-700 transition-colors">
@@ -232,7 +232,7 @@ export default async function HomePage() {
                         <Code2 className="h-10 w-10 text-gray-300" />
                       </div>
                     )}
-                    <div className="absolute top-3 left-3 bg-green-600 text-white text-xs font-medium px-2.5 py-1 rounded-full flex items-center gap-1">
+                    <div className="absolute top-3 left-3 bg-green-600 text-white text-xs font-medium px-2.5 py-1 rounded-none flex items-center gap-1">
                       <Sparkles className="h-3 w-3" />
                       Featured
                     </div>
@@ -301,7 +301,7 @@ export default async function HomePage() {
                   </div>
                   <div className="p-4">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs bg-gray-100 text-gray-500 px-2.5 py-0.5 rounded-full">
+                      <span className="text-xs bg-gray-100 text-gray-500 px-2.5 py-0.5 rounded-none">
                         {(product.category as { name: string } | null)?.name || 'Uncategorized'}
                       </span>
                     </div>
@@ -343,11 +343,11 @@ export default async function HomePage() {
               { step: '02', icon: Code2, title: 'Upload or Browse', desc: 'Sellers upload code with demos. Buyers search thousands of products.' },
               { step: '03', icon: TrendingUp, title: 'Earn or Build', desc: 'Sellers earn 85% per sale. Buyers get instant downloads with license.' },
             ].map((item) => (
-              <div key={item.step} className="card rounded-2xl p-6 md:p-8 text-center relative group">
+              <div key={item.step} className="card rounded-none p-6 md:p-8 text-center relative group">
                 <div className="text-5xl font-black text-gray-100 absolute top-4 right-5 select-none">
                   {item.step}
                 </div>
-                <div className="w-14 h-14 rounded-2xl bg-green-50 flex items-center justify-center mx-auto mb-5 group-hover:bg-green-100 transition-colors">
+                <div className="w-14 h-14 rounded-none bg-green-50 flex items-center justify-center mx-auto mb-5 group-hover:bg-green-100 transition-colors">
                   <item.icon className="h-7 w-7 text-green-600" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">{item.title}</h3>
@@ -361,7 +361,7 @@ export default async function HomePage() {
       {/* ===== CTA ===== */}
       <section className="py-20 md:py-28 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-green-600 via-green-500 to-emerald-600" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-white/10 rounded-full blur-3xl" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-white/10 rounded-none blur-3xl" />
 
         <div className="container mx-auto px-4 relative z-10 text-center">
           <div className="max-w-2xl mx-auto">
@@ -375,14 +375,14 @@ export default async function HomePage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/register?role=seller"
-                className="inline-flex items-center justify-center gap-2 bg-white text-green-700 hover:bg-green-50 px-8 py-4 rounded-xl font-semibold text-base transition-colors shadow-lg"
+                className="inline-flex items-center justify-center gap-2 bg-white text-green-700 hover:bg-green-50 px-8 py-4 rounded-none font-semibold text-base transition-colors shadow-lg"
               >
                 Create Seller Account
                 <ArrowRight className="h-5 w-5" />
               </Link>
               <Link
                 href="/products"
-                className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 px-8 py-4 rounded-xl font-semibold text-base transition-colors"
+                className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 px-8 py-4 rounded-none font-semibold text-base transition-colors"
               >
                 Explore Marketplace
               </Link>

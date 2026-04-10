@@ -94,7 +94,7 @@ export function Header() {
             <Link
               href="/products"
               className={cn(
-                'px-3.5 py-2 rounded-lg text-sm font-medium transition-all',
+                'px-3.5 py-2 rounded-none text-sm font-medium transition-all',
                 pathname === '/products'
                   ? 'text-green-700 bg-green-50'
                   : 'text-gray-600 hover:text-green-700 hover:bg-green-50'
@@ -105,7 +105,7 @@ export function Header() {
             <Link
               href="/categories"
               className={cn(
-                'px-3.5 py-2 rounded-lg text-sm font-medium transition-all',
+                'px-3.5 py-2 rounded-none text-sm font-medium transition-all',
                 pathname === '/categories'
                   ? 'text-green-700 bg-green-50'
                   : 'text-gray-600 hover:text-green-700 hover:bg-green-50'
@@ -117,7 +117,7 @@ export function Header() {
 
           {/* Search - Desktop */}
           <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xl mx-4">
-            <div className="flex w-full rounded-xl overflow-hidden border border-gray-200 bg-gray-50 focus-within:border-green-400 focus-within:bg-white transition-all">
+            <div className="flex w-full rounded-none overflow-hidden border border-gray-200 bg-gray-50 focus-within:border-green-400 focus-within:bg-white transition-all">
               <Input
                 type="search"
                 placeholder="Search scripts, templates, plugins..."
@@ -136,7 +136,7 @@ export function Header() {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 hover:text-green-700 hover:bg-green-50 transition-all">
+                  <button className="flex items-center gap-2 px-3 py-2 rounded-none text-gray-600 hover:text-green-700 hover:bg-green-50 transition-all">
                     <User className="h-5 w-5" />
                     <span className="hidden sm:inline text-sm">Account</span>
                   </button>
@@ -171,7 +171,7 @@ export function Header() {
                 <Link href="/login" className="text-gray-600 hover:text-gray-900 text-sm transition-colors hidden sm:inline">
                   Sign In
                 </Link>
-                <Link href="/register" className="btn-primary text-white px-5 py-2 rounded-lg text-sm font-medium">
+                <Link href="/register" className="btn-primary text-white px-5 py-2 rounded-none text-sm font-medium">
                   Get Started
                 </Link>
               </>
@@ -194,7 +194,7 @@ export function Header() {
 
                 {/* Mobile Search */}
                 <form onSubmit={handleSearch} className="px-4 py-3">
-                  <div className="flex rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+                  <div className="flex rounded-none overflow-hidden border border-gray-200 bg-gray-50">
                     <Input
                       type="search"
                       placeholder="Search..."
@@ -213,7 +213,7 @@ export function Header() {
                     href="/products"
                     onClick={() => setMobileMenuOpen(false)}
                     className={cn(
-                      'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all',
+                      'flex items-center gap-3 px-3 py-2.5 rounded-none transition-all',
                       pathname === '/products' ? 'bg-green-50 text-green-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     )}
                   >
@@ -223,7 +223,7 @@ export function Header() {
                     href="/categories"
                     onClick={() => setMobileMenuOpen(false)}
                     className={cn(
-                      'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all',
+                      'flex items-center gap-3 px-3 py-2.5 rounded-none transition-all',
                       pathname === '/categories' ? 'bg-green-50 text-green-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     )}
                   >
@@ -239,7 +239,7 @@ export function Header() {
                       key={category.slug}
                       href={`/categories/${category.slug}`}
                       onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all"
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-none text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all"
                     >
                       <span className="text-sm font-medium">{category.name}</span>
                     </Link>

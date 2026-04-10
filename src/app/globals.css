@@ -1,8 +1,7 @@
 @import "tailwindcss";
 
 /* ============================================================================
-   CODEVAULT — WHITE & LIGHT GREEN THEME
-   Clean, minimal, professional. White backgrounds with emerald/green accents.
+   CODEVAULT — WHITE & LIGHT GREEN / MONTSERRAT / SHARP EDGES
    ============================================================================ */
 
 :root {
@@ -19,10 +18,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-sans: var(--font-montserrat), system-ui, -apple-system, sans-serif;
 }
 
-/* ---- Base ---- */
 html {
   scroll-behavior: smooth;
 }
@@ -42,7 +40,7 @@ body {
 }
 
 /* ============================================================================
-   CARD STYLES
+   CARDS — sharp edges
    ============================================================================ */
 
 .card {
@@ -59,18 +57,6 @@ body {
   transform: translateY(-2px);
 }
 
-/* Soft green tinted card */
-.card-green {
-  background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
-  border: 1px solid #dcfce7;
-  transition: all 0.3s ease;
-}
-
-.card-green:hover {
-  border-color: #bbf7d0;
-  box-shadow: 0 4px 20px -4px rgba(34, 197, 94, 0.1);
-}
-
 /* ============================================================================
    NAV
    ============================================================================ */
@@ -83,7 +69,7 @@ body {
 }
 
 /* ============================================================================
-   BUTTONS
+   BUTTONS — sharp edges
    ============================================================================ */
 
 .btn-primary {
@@ -158,13 +144,12 @@ body {
 .delay-500 { animation-delay: 500ms; }
 
 /* ============================================================================
-   PRODUCT CARD
+   PRODUCT CARD — sharp edges
    ============================================================================ */
 
 .product-card {
   background: white;
   border: 1px solid #f3f4f6;
-  border-radius: 16px;
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -181,33 +166,11 @@ body {
    SCROLLBAR
    ============================================================================ */
 
-::-webkit-scrollbar {
-  width: 6px;
-}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #f9fafb; }
+::-webkit-scrollbar-thumb { background: #d1d5db; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+* { scrollbar-width: thin; scrollbar-color: #d1d5db transparent; }
 
-::-webkit-scrollbar-track {
-  background: #f9fafb;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
-}
-
-* {
-  scrollbar-width: thin;
-  scrollbar-color: #d1d5db transparent;
-}
-
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }

@@ -99,7 +99,7 @@ function LoginFormContent() {
             <CardContent className="p-6 sm:p-8">
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                 {error && (
-                  <div className="p-4 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm">{error}</div>
+                  <div className="p-4 rounded-none bg-red-50 border border-red-100 text-red-600 text-sm">{error}</div>
                 )}
 
                 <div className="space-y-2">
@@ -108,7 +108,7 @@ function LoginFormContent() {
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
                     <Input
                       id="email" type="email" placeholder="you@example.com"
-                      className="pl-10 h-12 bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-green-400 focus:ring-green-200 rounded-xl"
+                      className="pl-10 h-12 bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-green-400 focus:ring-green-200 rounded-none"
                       {...register('email')}
                     />
                   </div>
@@ -124,7 +124,7 @@ function LoginFormContent() {
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
                     <Input
                       id="password" type={showPassword ? 'text' : 'password'} placeholder="Enter your password"
-                      className="pl-10 pr-10 h-12 bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-green-400 focus:ring-green-200 rounded-xl"
+                      className="pl-10 pr-10 h-12 bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-green-400 focus:ring-green-200 rounded-none"
                       {...register('password')}
                     />
                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
@@ -134,7 +134,7 @@ function LoginFormContent() {
                   {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
                 </div>
 
-                <Button type="submit" className="w-full h-12 text-base font-semibold btn-primary rounded-xl border-0" disabled={isSubmitting}>
+                <Button type="submit" className="w-full h-12 text-base font-semibold btn-primary rounded-none border-0" disabled={isSubmitting}>
                   {isSubmitting ? (<><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Signing in...</>) : (<>Sign In <ArrowRight className="ml-2 h-5 w-5" /></>)}
                 </Button>
               </form>
@@ -152,8 +152,8 @@ function LoginFormContent() {
 
       {/* Right - Benefits */}
       <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-green-500 via-green-600 to-emerald-700 relative overflow-hidden">
-        <div className="absolute top-20 left-20 w-32 h-32 bg-white/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-20 w-40 h-40 bg-emerald-300/20 rounded-full blur-3xl" />
+        <div className="absolute top-20 left-20 w-32 h-32 bg-white/10 rounded-none blur-3xl" />
+        <div className="absolute bottom-20 right-20 w-40 h-40 bg-emerald-300/20 rounded-none blur-3xl" />
 
         <div className="relative z-10 flex items-center justify-center w-full px-12">
           <div className="max-w-md">
@@ -163,8 +163,8 @@ function LoginFormContent() {
             </p>
             <div className="space-y-4">
               {benefits.map((benefit, index) => (
-                <div key={index} className="flex items-start gap-4 p-4 bg-white/10 backdrop-blur-sm rounded-xl border border-white/15 hover:bg-white/15 transition-all">
-                  <div className="w-12 h-12 bg-white/15 rounded-xl flex items-center justify-center shrink-0">
+                <div key={index} className="flex items-start gap-4 p-4 bg-white/10 backdrop-blur-sm rounded-none border border-white/15 hover:bg-white/15 transition-all">
+                  <div className="w-12 h-12 bg-white/15 rounded-none flex items-center justify-center shrink-0">
                     <benefit.icon className="h-6 w-6 text-white" />
                   </div>
                   <div>

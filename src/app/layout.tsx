@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Montserrat } from 'next/font/google'
 import './globals.css'
 
-const inter = Inter({
+const montserrat = Montserrat({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-montserrat',
   display: 'swap',
 })
 
@@ -39,7 +39,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} font-sans antialiased bg-white text-gray-900`}>
+      <body className={`${montserrat.variable} font-sans antialiased bg-white text-gray-900`}>
         <main id="main-content">{children}</main>
       </body>
     </html>

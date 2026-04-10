@@ -157,7 +157,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           {/* Left Column */}
           <div className="lg:col-span-2 space-y-8">
             {/* Thumbnail */}
-            <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-gray-100 bg-gray-50">
+            <div className="relative aspect-video w-full overflow-hidden rounded-none border border-gray-100 bg-gray-50">
               {typedProduct.thumbnail_url ? (
                 <Image src={typedProduct.thumbnail_url} alt={typedProduct.title} fill className="object-cover" priority sizes="(max-width: 1024px) 100vw, 66vw" />
               ) : (
@@ -186,14 +186,14 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <div className="flex flex-wrap items-center gap-2">
                 <Tag size={14} className="text-gray-400" />
                 {typedProduct.tags.map((tag) => (
-                  <span key={tag} className="rounded-full bg-green-50 border border-green-100 px-3 py-1 text-xs font-medium text-green-700 hover:bg-green-100 transition-colors">{tag}</span>
+                  <span key={tag} className="rounded-none bg-green-50 border border-green-100 px-3 py-1 text-xs font-medium text-green-700 hover:bg-green-100 transition-colors">{tag}</span>
                 ))}
               </div>
             )}
 
             {/* Version Info */}
             {currentFile && (
-              <div className="card rounded-xl p-5">
+              <div className="card rounded-none p-5">
                 <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-400">Current Version</h2>
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                   <div><p className="text-xs text-gray-400">Version</p><p className="font-semibold text-green-600">{currentFile.version}</p></div>
@@ -211,16 +211,16 @@ export default async function ProductPage({ params }: ProductPageProps) {
             )}
 
             {/* Description */}
-            <div className="card rounded-xl p-6">
+            <div className="card rounded-none p-6">
               <h2 className="mb-4 text-xl font-bold">Description</h2>
               <div
-                className="prose prose-gray max-w-none prose-headings:text-gray-900 prose-p:text-gray-600 prose-a:text-green-600 prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-800 prose-code:text-green-700 prose-code:bg-green-50 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-pre:bg-gray-50 prose-pre:border prose-pre:border-gray-100 prose-li:text-gray-600 prose-img:rounded-lg"
+                className="prose prose-gray max-w-none prose-headings:text-gray-900 prose-p:text-gray-600 prose-a:text-green-600 prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-800 prose-code:text-green-700 prose-code:bg-green-50 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-pre:bg-gray-50 prose-pre:border prose-pre:border-gray-100 prose-li:text-gray-600 prose-img:rounded-none"
                 dangerouslySetInnerHTML={{ __html: typedProduct.description }}
               />
             </div>
 
             {/* Reviews */}
-            <div className="card rounded-xl p-6">
+            <div className="card rounded-none p-6">
               <div className="mb-6 flex items-center justify-between">
                 <h2 className="text-xl font-bold">Reviews ({typedProduct.review_count})</h2>
                 {typedProduct.avg_rating !== null && typedProduct.avg_rating > 0 && (
@@ -238,9 +238,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
                           {review.buyer.avatar_url ? (
-                            <Image src={review.buyer.avatar_url} alt={review.buyer.display_name} width={36} height={36} className="rounded-full" />
+                            <Image src={review.buyer.avatar_url} alt={review.buyer.display_name} width={36} height={36} className="rounded-none" />
                           ) : (
-                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-green-50"><User size={16} className="text-green-600" /></div>
+                            <div className="flex h-9 w-9 items-center justify-center rounded-none bg-green-50"><User size={16} className="text-green-600" /></div>
                           )}
                           <div>
                             <p className="font-medium text-gray-800">{review.buyer.display_name}</p>
@@ -255,7 +255,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 </div>
               ) : (
                 <div className="py-12 text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-green-50 flex items-center justify-center mx-auto mb-3">
+                  <div className="w-16 h-16 rounded-none bg-green-50 flex items-center justify-center mx-auto mb-3">
                     <Star size={24} className="text-gray-300" />
                   </div>
                   <p className="text-gray-500">No reviews yet</p>
@@ -268,19 +268,19 @@ export default async function ProductPage({ params }: ProductPageProps) {
           {/* Right Column */}
           <div className="space-y-6 lg:sticky lg:top-8 lg:self-start">
             {/* Purchase Card */}
-            <div className="card rounded-2xl p-6">
+            <div className="card rounded-none p-6">
               <div className="mb-5 text-center">
                 <span className="text-4xl font-extrabold text-gray-900">{formatPrice(typedProduct.price_cents)}</span>
               </div>
               <Link
                 href={`/checkout/${typedProduct.slug}`}
-                className="btn-primary flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-base font-semibold"
+                className="btn-primary flex w-full items-center justify-center gap-2 rounded-none px-6 py-3.5 text-base font-semibold"
               >
                 <Shield size={18} /> Buy Now
               </Link>
               {typedProduct.demo_url && (
                 <a href={typedProduct.demo_url} target="_blank" rel="noopener noreferrer"
-                  className="btn-outline mt-3 flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-medium">
+                  className="btn-outline mt-3 flex w-full items-center justify-center gap-2 rounded-none px-6 py-3 text-sm font-medium">
                   <ExternalLink size={16} /> Live Demo
                 </a>
               )}
@@ -298,13 +298,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
             </div>
 
             {/* Seller Card */}
-            <div className="card rounded-2xl p-6">
+            <div className="card rounded-none p-6">
               <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-400">About the Seller</h3>
               <div className="flex items-center gap-3">
                 {typedProduct.seller.avatar_url ? (
-                  <Image src={typedProduct.seller.avatar_url} alt={typedProduct.seller.display_name} width={48} height={48} className="rounded-full" />
+                  <Image src={typedProduct.seller.avatar_url} alt={typedProduct.seller.display_name} width={48} height={48} className="rounded-none" />
                 ) : (
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-50"><User size={20} className="text-green-600" /></div>
+                  <div className="flex h-12 w-12 items-center justify-center rounded-none bg-green-50"><User size={20} className="text-green-600" /></div>
                 )}
                 <div>
                   <p className="font-semibold text-gray-900">{typedProduct.seller.display_name}</p>
@@ -312,13 +312,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 </div>
               </div>
               {typedProduct.seller.bio && <p className="mt-3 text-sm leading-relaxed text-gray-500">{typedProduct.seller.bio}</p>}
-              <Link href={`/sellers/${typedProduct.seller.id}`} className="btn-outline mt-4 flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-medium w-full">View Profile</Link>
+              <Link href={`/sellers/${typedProduct.seller.id}`} className="btn-outline mt-4 flex items-center justify-center rounded-none px-4 py-2.5 text-sm font-medium w-full">View Profile</Link>
             </div>
 
             {/* Category */}
-            <div className="card rounded-2xl p-6">
+            <div className="card rounded-none p-6">
               <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-400">Category</h3>
-              <Link href={`/categories/${typedProduct.category.slug}`} className="inline-flex items-center gap-2 rounded-full bg-green-50 border border-green-100 px-4 py-2 text-sm font-medium text-green-700 hover:bg-green-100 transition-colors">
+              <Link href={`/categories/${typedProduct.category.slug}`} className="inline-flex items-center gap-2 rounded-none bg-green-50 border border-green-100 px-4 py-2 text-sm font-medium text-green-700 hover:bg-green-100 transition-colors">
                 <Code2 size={14} /> {typedProduct.category.name}
               </Link>
             </div>
