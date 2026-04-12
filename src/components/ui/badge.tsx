@@ -1,24 +1,27 @@
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
-import { cn } from '@/lib/utils/cn'
+import { cn } from '@/lib/utils'
 
 const badgeVariants = cva(
-  'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2',
+  'inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide transition-colors',
   {
     variants: {
       variant: {
-        default: 'border-transparent bg-green-600 text-white',
-        secondary: 'border-transparent bg-gray-100 text-gray-900',
-        destructive: 'border-transparent bg-red-600 text-white',
-        outline: 'text-gray-700 border-gray-300',
-        success: 'border-transparent bg-green-100 text-green-800',
-        warning: 'border-transparent bg-yellow-100 text-yellow-800',
-        info: 'border-transparent bg-blue-100 text-blue-800',
+        default:     'bg-(--color-elevated) text-foreground',
+        secondary:   'bg-(--color-elevated) text-(--color-text-secondary)',
+        destructive: 'bg-(--color-error) text-white',
+        outline:     'border border-(--color-border) text-(--color-text-secondary)',
+        success:     'bg-(--color-success-bg) text-(--color-success)',
+        warning:     'bg-(--color-warning-bg) text-(--color-warning)',
+        info:        'bg-(--color-info-bg) text-(--color-info)',
+        sale:        'bg-(--color-sale) text-white',
+        new:         'bg-(--color-info) text-white',
+        premium:     'bg-amber-800 text-white',
+        featured:    'bg-(--brand-amber) text-white',
+        bestseller:  'bg-(--brand-primary) text-white',
       },
     },
-    defaultVariants: {
-      variant: 'default',
-    },
+    defaultVariants: { variant: 'default' },
   }
 )
 
@@ -27,9 +30,7 @@ export interface BadgeProps
     VariantProps<typeof badgeVariants> {}
 
 function Badge({ className, variant, ...props }: BadgeProps) {
-  return (
-    <div className={cn(badgeVariants({ variant }), className)} {...props} />
-  )
+  return <div className={cn(badgeVariants({ variant }), className)} {...props} />
 }
 
 export { Badge, badgeVariants }

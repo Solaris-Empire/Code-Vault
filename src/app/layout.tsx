@@ -1,16 +1,33 @@
 import type { Metadata } from 'next'
-import { Montserrat } from 'next/font/google'
+import { Fraunces, DM_Sans, JetBrains_Mono } from 'next/font/google'
+import { AnnouncementBar } from '@/components/layout/AnnouncementBar'
+import { Header } from '@/components/layout/header'
+import { Footer } from '@/components/layout/footer'
 import './globals.css'
 
-const montserrat = Montserrat({
+const fraunces = Fraunces({
   subsets: ['latin'],
-  variable: '--font-montserrat',
+  variable: '--font-fraunces',
+  display: 'swap',
+  weight: ['400', '500', '600', '700', '800', '900'],
+})
+
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  variable: '--font-dm-sans',
+  display: 'swap',
+  weight: ['400', '500', '600', '700'],
+})
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-jetbrains-mono',
   display: 'swap',
 })
 
 export const metadata: Metadata = {
   title: {
-    default: 'CodeVault - Premium Digital Code Marketplace',
+    default: 'CodeVault — Premium Digital Code Marketplace',
     template: '%s | CodeVault',
   },
   description:
@@ -38,9 +55,12 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={`${montserrat.variable} font-sans antialiased bg-white text-gray-900`}>
+    <html lang="en" className={`${fraunces.variable} ${dmSans.variable} ${jetbrainsMono.variable}`}>
+      <body className="font-sans antialiased bg-background text-foreground">
+        <AnnouncementBar />
+        <Header />
         <main id="main-content">{children}</main>
+        <Footer />
       </body>
     </html>
   )
