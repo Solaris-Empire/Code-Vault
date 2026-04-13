@@ -16,6 +16,42 @@ import {
   logSecurityEvent
 } from '@/lib/security'
 
+// Build the CSP header string for this request. A fresh nonce is minted
+// per request and threaded into script-src via 'strict-dynamic' so
+// Next.js's bootstrap chunks (and anything they transitively load — e.g.
+// Stripe.js) execute, while any attacker-injected inline <script> without
+// the nonce is blocked. 'unsafe-inline' + https: are kept as fallbacks
+// for old browsers; modern browsers that understand 'strict-dynamic'
+// ignore them.
+function buildCsp(nonce: string): string {
+  const supabaseHost = (() => {
+    try {
+      return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL || '').host
+    } catch {
+      return ''
+    }
+  })()
+
+  const supabaseDirective = supabaseHost ? `https://${supabaseHost}` : ''
+  const supabaseWs = supabaseHost ? `wss://${supabaseHost}` : ''
+
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https: 'unsafe-inline'`,
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    `img-src 'self' data: blob: ${supabaseDirective} https://*.stripe.com https://images.unsplash.com https://avatars.githubusercontent.com https://lh3.googleusercontent.com`,
+    "font-src 'self' data: https://fonts.gstatic.com",
+    `connect-src 'self' ${supabaseDirective} ${supabaseWs} https://*.stripe.com https://api.github.com https://api.osv.dev`,
+    "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://connect-js.stripe.com",
+    "worker-src 'self' blob:",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self' https://*.stripe.com",
+    "frame-ancestors 'none'",
+    'upgrade-insecure-requests',
+  ].join('; ')
+}
+
 export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
@@ -23,6 +59,18 @@ export async function updateSession(request: NextRequest) {
   if (pathname.match(/\.(ico|png|jpg|jpeg|gif|svg|css|js|woff|woff2)$/)) {
     return NextResponse.next({ request })
   }
+
+  // Per-request nonce for script-src. Must be generated *before* any
+  // response is built so the same value ends up on the request header
+  // (picked up by Next.js for its bootstrap scripts and readable via
+  // `headers()` in Server Components) and on the CSP response header.
+  const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
+  const csp = buildCsp(nonce)
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-nonce', nonce)
+  // Propagate CSP via request header too — Next.js strips this before
+  // forwarding and uses it to pick up the nonce for inline bootstrap.
+  requestHeaders.set('content-security-policy', csp)
 
   // Threat detection for API routes (skip webhooks - they use their own signature verification)
   if (pathname.startsWith('/api/') && !pathname.startsWith('/api/webhooks/')) {
@@ -63,9 +111,9 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  // Rate limiting for upload endpoints (strict)
+  // Rate limiting for upload endpoints
   if (pathname.startsWith('/api/upload')) {
-    const rateLimitResult = checkRateLimit(request, rateLimitConfigs.sensitive)
+    const rateLimitResult = checkRateLimit(request, rateLimitConfigs.upload)
     if (!rateLimitResult.allowed) {
       logRateLimitViolation(request, pathname, rateLimitResult.identifier)
       const response = NextResponse.json(
@@ -115,7 +163,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   let supabaseResponse = NextResponse.next({
-    request,
+    request: { headers: requestHeaders },
   })
 
   const supabase = createServerClient(
@@ -131,7 +179,7 @@ export async function updateSession(request: NextRequest) {
             request.cookies.set(name, value)
           )
           supabaseResponse = NextResponse.next({
-            request,
+            request: { headers: requestHeaders },
           })
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
@@ -188,7 +236,7 @@ export async function updateSession(request: NextRequest) {
     )
 
     const { data: profile } = await supabaseAdmin
-      .from('profiles')
+      .from('users')
       .select('role')
       .eq('id', user.id)
       .single()
@@ -228,7 +276,7 @@ export async function updateSession(request: NextRequest) {
         let isAdmin = false
         if (user) {
           const { data: profile } = await supabaseAdmin
-            .from('profiles')
+            .from('users')
             .select('role')
             .eq('id', user.id)
             .single()
@@ -258,6 +306,13 @@ export async function updateSession(request: NextRequest) {
     supabaseResponse = setCsrfTokenCookie(supabaseResponse, csrfToken)
     supabaseResponse.headers.set('x-csrf-token', csrfToken)
   }
+
+  // Shipping as Report-Only first — violations are logged to the browser
+  // console but nothing is blocked. Flip to `Content-Security-Policy`
+  // (drop `-Report-Only`) once we've verified no legitimate scripts are
+  // getting flagged in prod. A wrongly-tight enforcing CSP would blank
+  // the entire app.
+  supabaseResponse.headers.set('Content-Security-Policy-Report-Only', csp)
 
   return supabaseResponse
 }

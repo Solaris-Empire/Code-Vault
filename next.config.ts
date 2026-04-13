@@ -3,16 +3,10 @@ import type { NextConfig } from "next";
 const isDev = process.env.NODE_ENV === 'development';
 const isProd = process.env.NODE_ENV === 'production';
 
-// Derive the Supabase hostname from the public URL so CSP can be pinned
-// to our specific project instead of wildcarding to every *.supabase.co.
-const supabaseHost = (() => {
-  try {
-    return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co').host;
-  } catch {
-    return 'placeholder.supabase.co';
-  }
-})();
-
+// Content-Security-Policy is set per-request in src/lib/supabase/middleware.ts
+// so we can inject a nonce into script-src + strict-dynamic. A static CSP
+// here would either force us to allow 'unsafe-inline' (defeating XSS
+// defence) or conflict with the dynamic one.
 const securityHeaders = [
   { key: 'X-DNS-Prefetch-Control', value: 'on' },
   ...(isProd ? [{ key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' }] : []),
@@ -28,24 +22,6 @@ const securityHeaders = [
       'magnetometer=()', 'microphone=()', 'midi=()', 'payment=(self)',
       'picture-in-picture=()', 'usb=()', 'xr-spatial-tracking=()'
     ].join(', ')
-  },
-  {
-    key: 'Content-Security-Policy',
-    value: [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://js.stripe.com https://connect-js.stripe.com",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      `img-src 'self' data: blob: https://${supabaseHost} https://*.stripe.com https://images.unsplash.com https://avatars.githubusercontent.com https://lh3.googleusercontent.com`,
-      "font-src 'self' data: https://fonts.gstatic.com",
-      `connect-src 'self' https://${supabaseHost} wss://${supabaseHost} https://*.stripe.com https://api.github.com https://api.osv.dev`,
-      "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://connect-js.stripe.com",
-      "worker-src 'self' blob:",
-      "object-src 'none'",
-      "base-uri 'self'",
-      "form-action 'self' https://*.stripe.com",
-      "frame-ancestors 'none'",
-      "upgrade-insecure-requests"
-    ].join('; ')
   },
   { key: 'Cross-Origin-Opener-Policy', value: 'same-origin-allow-popups' },
 ];
