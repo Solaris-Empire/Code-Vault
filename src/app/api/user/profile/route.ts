@@ -1,7 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { createClient, getSupabaseAdmin } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
+
+// Only these fields are safe for a user to self-update. role,
+// stripe_account_id, stripe_onboarding_complete, xp, rank, tier, email,
+// etc. must never be accepted from the client body.
+const profileUpdateSchema = z
+  .object({
+    display_name: z.string().trim().min(1).max(60).optional(),
+    bio: z.string().trim().max(500).nullable().optional(),
+    avatar_url: z.string().url().max(500).nullable().optional(),
+  })
+  .strict()
 
 export async function GET() {
   try {
@@ -20,7 +32,8 @@ export async function GET() {
       .single()
 
     if (error) {
-      return NextResponse.json({ error: { message: error.message } }, { status: 500 })
+      console.error('[profile:GET]', error)
+      return NextResponse.json({ error: { message: 'Failed to fetch profile' } }, { status: 500 })
     }
 
     return NextResponse.json({ data: profile })
@@ -38,23 +51,24 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: { message: 'Unauthorized' } }, { status: 401 })
     }
 
-    const body = await request.json()
-    const { display_name, bio, avatar_url } = body
-
-    const updateData: Record<string, unknown> = {}
-    if (display_name !== undefined) updateData.display_name = display_name
-    if (bio !== undefined) updateData.bio = bio
-    if (avatar_url !== undefined) updateData.avatar_url = avatar_url
+    const parsed = profileUpdateSchema.safeParse(await request.json().catch(() => null))
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: { message: 'Invalid profile payload', issues: parsed.error.issues } },
+        { status: 400 },
+      )
+    }
 
     const { data: profile, error } = await supabase
       .from('users')
-      .update(updateData)
+      .update(parsed.data)
       .eq('id', user.id)
       .select()
       .single()
 
     if (error) {
-      return NextResponse.json({ error: { message: error.message } }, { status: 500 })
+      console.error('[profile:PUT]', error)
+      return NextResponse.json({ error: { message: 'Failed to update profile' } }, { status: 500 })
     }
 
     return NextResponse.json({ data: profile })

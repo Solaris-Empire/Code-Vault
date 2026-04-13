@@ -2,8 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { createServerClient } from '@supabase/ssr'
+import { z } from 'zod'
+import { checkRateLimit, rateLimitConfigs } from '@/lib/security/rate-limit'
 
 export const dynamic = 'force-dynamic'
+
+const reviewSchema = z.object({
+  product_id: z.string().uuid(),
+  rating: z.number().int().min(1).max(5),
+  comment: z.string().trim().max(2000).nullable().optional(),
+})
 
 function getSupabaseAdmin() {
   return createClient(
@@ -72,6 +80,10 @@ export async function GET(request: NextRequest) {
 
 // POST - Submit a review (must own the product via completed order)
 export async function POST(request: NextRequest) {
+  // Per-IP throttle — stops review flooding from scripted accounts.
+  const rl = checkRateLimit(request, rateLimitConfigs.review)
+  if (!rl.allowed) return rl.error!
+
   const supabase = await getSupabaseServer()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -79,28 +91,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: { message: 'Sign in to leave a review' } }, { status: 401 })
   }
 
-  const body = await request.json()
-  const { product_id, rating, comment } = body
-
-  if (!product_id || !rating || rating < 1 || rating > 5) {
-    return NextResponse.json({ error: { message: 'Product ID and rating (1-5) are required' } }, { status: 400 })
+  const parsed = reviewSchema.safeParse(await request.json().catch(() => null))
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: { message: 'Invalid review payload', issues: parsed.error.issues } },
+      { status: 400 },
+    )
   }
+  const { product_id, rating, comment } = parsed.data
 
   const supabaseAdmin = getSupabaseAdmin()
 
-  // Check if already reviewed
-  const { data: existing } = await supabaseAdmin
-    .from('reviews')
-    .select('id')
-    .eq('product_id', product_id)
-    .eq('buyer_id', user.id)
-    .single()
-
-  if (existing) {
-    return NextResponse.json({ error: { message: 'You have already reviewed this product' } }, { status: 400 })
-  }
-
-  // Check if user has a completed order for this product
+  // Check if user has a completed, non-refunded order for this product.
+  // Refunded orders do NOT grant review rights.
   const { data: order } = await supabaseAdmin
     .from('orders')
     .select('id')
@@ -108,24 +111,33 @@ export async function POST(request: NextRequest) {
     .eq('product_id', product_id)
     .eq('status', 'completed')
     .limit(1)
-    .single()
+    .maybeSingle()
 
   if (!order) {
     return NextResponse.json({ error: { message: 'You must purchase this product before reviewing' } }, { status: 403 })
   }
 
+  // Insert the review. The (product_id, buyer_id) UNIQUE constraint on the
+  // reviews table is the source of truth for "already reviewed" — a raw
+  // SELECT-then-INSERT has a TOCTOU race. We catch 23505 and return 409.
   const { data: review, error } = await supabaseAdmin
     .from('reviews')
     .insert({
       product_id,
       buyer_id: user.id,
       rating,
-      comment: comment?.slice(0, 2000) || null,
+      comment: comment ?? null,
     })
     .select()
     .single()
 
   if (error) {
+    if (error.code === '23505') {
+      return NextResponse.json(
+        { error: { message: 'You have already reviewed this product' } },
+        { status: 409 },
+      )
+    }
     return NextResponse.json({ error: { message: 'Failed to submit review' } }, { status: 500 })
   }
 

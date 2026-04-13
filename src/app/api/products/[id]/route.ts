@@ -1,7 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { createClient, getSupabaseAdmin } from '@/lib/supabase/server'
+import { awardSellerXp, XP_REWARDS } from '@/lib/seller/rank'
 
 export const dynamic = 'force-dynamic'
+
+// Whitelists exactly which fields are accepted, and their shapes. Anything
+// else in the body (incl. seller_id, download_count, stripe ids, etc.) is
+// silently dropped by Zod before we hand it to Supabase.
+const licensePricesSchema = z
+  .object({
+    personal: z.number().int().min(0).max(10_000_000).optional(),
+    commercial: z.number().int().min(0).max(10_000_000).optional(),
+    extended: z.number().int().min(0).max(10_000_000).optional(),
+  })
+  .strict()
+  .nullable()
+
+const sellerFieldsSchema = z.object({
+  title: z.string().trim().min(3).max(200).optional(),
+  slug: z.string().trim().min(3).max(100).regex(/^[a-z0-9-]+$/, 'Invalid slug').optional(),
+  description: z.string().trim().min(1).max(50_000).optional(),
+  short_description: z.string().trim().max(500).nullable().optional(),
+  price_cents: z.number().int().min(0).max(10_000_000).optional(),
+  license_prices_cents: licensePricesSchema.optional(),
+  category_id: z.string().uuid().nullable().optional(),
+  demo_url: z.string().url().max(500).nullable().optional(),
+  thumbnail_url: z.string().url().max(500).nullable().optional(),
+  tags: z.array(z.string().trim().min(1).max(40)).max(20).nullable().optional(),
+  show_ai_detection: z.boolean().optional(),
+})
+
+const adminFieldsSchema = sellerFieldsSchema.extend({
+  status: z.enum(['draft', 'pending', 'approved', 'rejected']).optional(),
+  is_featured: z.boolean().optional(),
+})
 
 // GET single product by ID or slug
 export async function GET(
@@ -45,7 +78,7 @@ export async function PUT(
 
   // Check authorization: must be seller (owner) or admin
   const { data: userProfile } = await supabaseAdmin.from('users').select('role').eq('id', user.id).single()
-  const { data: product } = await supabaseAdmin.from('products').select('seller_id').eq('id', id).single()
+  const { data: product } = await supabaseAdmin.from('products').select('seller_id, status').eq('id', id).single()
 
   if (!product) {
     return NextResponse.json({ error: { message: 'Product not found' } }, { status: 404 })
@@ -58,21 +91,31 @@ export async function PUT(
     return NextResponse.json({ error: { message: 'Forbidden' } }, { status: 403 })
   }
 
-  const body = await request.json()
-
-  // Sellers can update these fields
-  const sellerFields = ['title', 'slug', 'description', 'short_description', 'price_cents', 'category_id', 'demo_url', 'thumbnail_url', 'tags']
-  // Admins can also update these
-  const adminFields = [...sellerFields, 'status', 'is_featured']
-
-  const allowedFields = isAdmin ? adminFields : sellerFields
-  const updateData: Record<string, unknown> = {}
-
-  for (const field of allowedFields) {
-    if (body[field] !== undefined) {
-      updateData[field] = body[field]
-    }
+  let body: unknown
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: { message: 'Invalid JSON body' } }, { status: 400 })
   }
+
+  const schema = isAdmin ? adminFieldsSchema : sellerFieldsSchema
+  const parsed = schema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json(
+      {
+        error: {
+          message: 'Invalid product update payload',
+          issues: parsed.error.issues.map((i) => ({
+            path: i.path.join('.'),
+            message: i.message,
+          })),
+        },
+      },
+      { status: 400 },
+    )
+  }
+
+  const updateData: Record<string, unknown> = { ...parsed.data }
 
   // If seller updates content, reset status to pending for re-review
   if (isOwner && !isAdmin && Object.keys(updateData).some(k => ['title', 'description', 'short_description'].includes(k))) {
@@ -88,6 +131,23 @@ export async function PUT(
 
   if (error) {
     return NextResponse.json({ error: { message: 'Failed to update product' } }, { status: 500 })
+  }
+
+  // Award XP on admin approval transition (pending/rejected → approved).
+  // Fire-and-forget — XP must never block the admin moderation flow.
+  if (
+    isAdmin &&
+    updateData.status === 'approved' &&
+    product.status !== 'approved'
+  ) {
+    awardSellerXp({
+      sellerId: product.seller_id,
+      eventType: 'product_approved',
+      xpDelta: XP_REWARDS.PRODUCT_APPROVED,
+      dedupKey: `product:${id}:approved`,
+      sourceTable: 'products',
+      sourceId: id,
+    }).catch(() => {})
   }
 
   return NextResponse.json({ data })

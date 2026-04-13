@@ -4,6 +4,12 @@ import Stripe from 'stripe'
 import { requireAuth } from '@/lib/auth/verify'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
 import { getStripe } from '@/lib/stripe/client'
+import {
+  DEFAULT_LICENSE_TIER,
+  getLicenseTierDef,
+  resolveLicensePrice,
+  type LicenseTier,
+} from '@/lib/constants/licensing'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,7 +18,7 @@ const PLATFORM_FEE_PERCENT = 15
 // ─── Request validation ────────────────────────────────────────────
 const checkoutSchema = z.object({
   product_id: z.string().uuid(),
-  license_type: z.enum(['regular', 'extended']).default('regular'),
+  license_type: z.enum(['personal', 'commercial', 'extended']).default(DEFAULT_LICENSE_TIER),
 })
 
 // ─── POST /api/checkout ────────────────────────────────────────────
@@ -45,7 +51,7 @@ export async function POST(request: NextRequest) {
   // Fetch the product — must be approved and available for sale
   const { data: product, error: productError } = await admin
     .from('products')
-    .select('id, title, slug, price_cents, seller_id, thumbnail_url, status')
+    .select('id, title, slug, price_cents, seller_id, thumbnail_url, status, license_prices_cents')
     .eq('id', body.product_id)
     .single()
 
@@ -86,10 +92,25 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // Extended license costs 5x the regular price
-  const priceCents = body.license_type === 'extended'
-    ? product.price_cents * 5
-    : product.price_cents
+  // Resolve tier price (honors per-product overrides, falls back to multipliers)
+  const tier: LicenseTier = body.license_type
+  const tierDef = getLicenseTierDef(tier)
+  const priceCents = resolveLicensePrice(
+    product.price_cents,
+    tier,
+    product.license_prices_cents as Partial<Record<LicenseTier, number>> | null
+  )
+
+  // Stripe rejects charges under $0.50. Enforce this explicitly so we
+  // surface a clean error instead of a Stripe 400 deep in the flow, and
+  // so free/zero-price products can't accidentally open checkout.
+  const MIN_CHARGE_CENTS = 50
+  if (priceCents < MIN_CHARGE_CENTS) {
+    return NextResponse.json(
+      { error: { message: 'Minimum purchase amount is $0.50' } },
+      { status: 400 },
+    )
+  }
 
   // Calculate platform fee for Stripe Connect
   const platformFeeCents = Math.round(priceCents * PLATFORM_FEE_PERCENT / 100)
@@ -114,7 +135,7 @@ export async function POST(request: NextRequest) {
           currency: 'usd',
           product_data: {
             name: product.title,
-            description: `${body.license_type === 'extended' ? 'Extended' : 'Regular'} License`,
+            description: `${tierDef.name} License \u2014 ${tierDef.tagline}`,
             ...(product.thumbnail_url ? { images: [product.thumbnail_url] } : {}),
           },
           unit_amount: priceCents,
@@ -126,7 +147,7 @@ export async function POST(request: NextRequest) {
       productId: product.id,
       buyerId: auth.user!.id,
       amountCents: priceCents.toString(),
-      licenseType: body.license_type,
+      licenseType: tier,
       sellerId: product.seller_id,
     },
     success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,

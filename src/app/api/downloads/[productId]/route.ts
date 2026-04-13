@@ -34,6 +34,32 @@ export async function GET(
     )
   }
 
+  // Check the license is still valid — extended licenses can expire.
+  // A NULL expires_at means the license never expires (regular perpetual).
+  // If a license row exists but is expired, reject the download. If no
+  // license row exists at all (legacy orders pre-license-system) we fall
+  // back to allowing the download since the completed order is proof.
+  const { data: license } = await admin
+    .from('licenses')
+    .select('id, expires_at')
+    .eq('product_id', productId)
+    .eq('buyer_id', auth.user!.id)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (license?.expires_at && new Date(license.expires_at) < new Date()) {
+    return NextResponse.json(
+      {
+        error: {
+          message: 'Your license has expired. Renew it to download again.',
+          code: 'LICENSE_EXPIRED',
+        },
+      },
+      { status: 403 }
+    )
+  }
+
   // Get the latest product file
   const { data: productFile } = await admin
     .from('product_files')
@@ -77,20 +103,11 @@ export async function GET(
     )
   }
 
-  // Increment download count — non-critical, don't fail the download if this errors
+  // Increment download count atomically via RPC so concurrent downloads
+  // don't lose increments. Non-critical — never fail the download on a
+  // counter error.
   try {
-    const { data: currentProduct } = await admin
-      .from('products')
-      .select('download_count')
-      .eq('id', productId)
-      .single()
-
-    if (currentProduct) {
-      await admin
-        .from('products')
-        .update({ download_count: (currentProduct.download_count || 0) + 1 })
-        .eq('id', productId)
-    }
+    await admin.rpc('increment_product_download_count', { p_product_id: productId })
   } catch {
     // Non-critical — silently continue
   }
