@@ -1,17 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createClient, getSupabaseAdmin } from '@/lib/supabase/server'
+import { checkRateLimit, rateLimitConfigs } from '@/lib/security/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
 // Only these fields are safe for a user to self-update. role,
 // stripe_account_id, stripe_onboarding_complete, xp, rank, tier, email,
 // etc. must never be accepted from the client body.
+//
+// avatar_url is HTTPS-only — `.url()` alone accepts data:, javascript:,
+// ftp: and similar which turn into XSS / tracking-pixel / phishing
+// vectors when the avatar renders in the feed or seller cards.
 const profileUpdateSchema = z
   .object({
     display_name: z.string().trim().min(1).max(60).optional(),
     bio: z.string().trim().max(500).nullable().optional(),
-    avatar_url: z.string().url().max(500).nullable().optional(),
+    avatar_url: z
+      .string()
+      .url()
+      .max(500)
+      .refine((u) => u.startsWith('https://'), { message: 'avatar_url must be HTTPS' })
+      .nullable()
+      .optional(),
   })
   .strict()
 
@@ -43,6 +54,9 @@ export async function GET() {
 }
 
 export async function PUT(request: NextRequest) {
+  const rl = checkRateLimit(request, rateLimitConfigs.api)
+  if (!rl.allowed) return rl.error!
+
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()

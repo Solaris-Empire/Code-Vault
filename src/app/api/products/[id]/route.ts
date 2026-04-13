@@ -2,8 +2,18 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createClient, getSupabaseAdmin } from '@/lib/supabase/server'
 import { awardSellerXp, XP_REWARDS } from '@/lib/seller/rank'
+import { checkRateLimit, rateLimitConfigs } from '@/lib/security/rate-limit'
 
 export const dynamic = 'force-dynamic'
+
+// HTTPS-only URL validator — blocks ftp/file/data/javascript schemes
+// that `.url()` alone would accept and that would turn into XSS or
+// phishing when a product page renders the value.
+const httpsUrl = z
+  .string()
+  .url()
+  .max(500)
+  .refine((u) => u.startsWith('https://'), { message: 'URL must be HTTPS' })
 
 // Whitelists exactly which fields are accepted, and their shapes. Anything
 // else in the body (incl. seller_id, download_count, stripe ids, etc.) is
@@ -25,8 +35,8 @@ const sellerFieldsSchema = z.object({
   price_cents: z.number().int().min(0).max(10_000_000).optional(),
   license_prices_cents: licensePricesSchema.optional(),
   category_id: z.string().uuid().nullable().optional(),
-  demo_url: z.string().url().max(500).nullable().optional(),
-  thumbnail_url: z.string().url().max(500).nullable().optional(),
+  demo_url: httpsUrl.nullable().optional(),
+  thumbnail_url: httpsUrl.nullable().optional(),
   tags: z.array(z.string().trim().min(1).max(40)).max(20).nullable().optional(),
   show_ai_detection: z.boolean().optional(),
 })
@@ -67,6 +77,9 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const rl = checkRateLimit(request, rateLimitConfigs.api)
+  if (!rl.allowed) return rl.error!
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {

@@ -42,7 +42,8 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!(await requireAdmin())) {
+  const caller = await requireAdmin()
+  if (!caller) {
     return NextResponse.json({ error: { message: 'Forbidden' } }, { status: 403 })
   }
 
@@ -52,6 +53,17 @@ export async function PUT(
 
   if (!role || !['buyer', 'seller', 'admin'].includes(role)) {
     return NextResponse.json({ error: { message: 'Invalid role' } }, { status: 400 })
+  }
+
+  // Block self-demotion. An admin editing themselves down to buyer/seller
+  // is almost always a mistake — and with a single-admin setup it bricks
+  // admin access permanently. Explicit role changes to yourself must go
+  // through another admin.
+  if (caller.id === id && role !== 'admin') {
+    return NextResponse.json(
+      { error: { message: 'You cannot change your own admin role. Ask another admin.' } },
+      { status: 400 },
+    )
   }
 
   const supabase = getSupabaseAdmin()

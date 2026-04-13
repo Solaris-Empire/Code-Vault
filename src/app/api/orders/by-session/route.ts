@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth/verify'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
 import { getStripe } from '@/lib/stripe/client'
+import { checkRateLimit, rateLimitConfigs } from '@/lib/security/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,6 +10,11 @@ export const dynamic = 'force-dynamic'
 // Fetches order details using a Stripe Checkout Session ID.
 // Used by the checkout success page to show the order confirmation.
 export async function GET(request: NextRequest) {
+  // Each call hits Stripe's API to resolve the session — throttle so a
+  // scripted client can't burn through our Stripe rate budget.
+  const rl = checkRateLimit(request, rateLimitConfigs.api)
+  if (!rl.allowed) return rl.error!
+
   const auth = await requireAuth(request)
   if (!auth.success) return auth.error!
 

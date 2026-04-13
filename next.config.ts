@@ -3,6 +3,16 @@ import type { NextConfig } from "next";
 const isDev = process.env.NODE_ENV === 'development';
 const isProd = process.env.NODE_ENV === 'production';
 
+// Derive the Supabase hostname from the public URL so CSP can be pinned
+// to our specific project instead of wildcarding to every *.supabase.co.
+const supabaseHost = (() => {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co').host;
+  } catch {
+    return 'placeholder.supabase.co';
+  }
+})();
+
 const securityHeaders = [
   { key: 'X-DNS-Prefetch-Control', value: 'on' },
   ...(isProd ? [{ key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' }] : []),
@@ -25,9 +35,9 @@ const securityHeaders = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' https://js.stripe.com https://connect-js.stripe.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "img-src 'self' data: https: blob:",
+      `img-src 'self' data: blob: https://${supabaseHost} https://*.stripe.com https://images.unsplash.com https://avatars.githubusercontent.com https://lh3.googleusercontent.com`,
       "font-src 'self' data: https://fonts.gstatic.com",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.stripe.com",
+      `connect-src 'self' https://${supabaseHost} wss://${supabaseHost} https://*.stripe.com https://api.github.com https://api.osv.dev`,
       "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://connect-js.stripe.com",
       "worker-src 'self' blob:",
       "object-src 'none'",

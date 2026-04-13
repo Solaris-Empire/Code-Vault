@@ -32,7 +32,10 @@ export async function GET(request: NextRequest) {
   }
 
   if (search) {
-    query = query.ilike('title', `%${search}%`)
+    // Escape PostgreSQL LIKE wildcards so a crafted search term can't
+    // scan the whole table with `%%%%` or pin a regex-style pattern.
+    const sanitized = search.replace(/[%_\\]/g, '\\$&')
+    query = query.ilike('title', `%${sanitized}%`)
   }
 
   const { data: products, error } = await query

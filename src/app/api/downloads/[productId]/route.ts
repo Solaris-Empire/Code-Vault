@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth/verify'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
+import { checkRateLimit, rateLimitConfigs } from '@/lib/security/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,6 +13,12 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ productId: string }> }
 ) {
+  // Strict throttle — every call mints a fresh 1-hour signed CDN URL and
+  // touches storage + DB. A compromised session without this limit would
+  // let an attacker scrape unlimited download URLs.
+  const rl = checkRateLimit(request, rateLimitConfigs.sensitive)
+  if (!rl.allowed) return rl.error!
+
   const auth = await requireAuth(request)
   if (!auth.success) return auth.error!
 
@@ -86,9 +93,16 @@ export async function GET(
   // Format: https://<project>.supabase.co/storage/v1/object/public/product-files/<path>
   const publicPrefix = `/storage/v1/object/public/${bucketName}/`
   const urlObj = new URL(fileUrl)
-  const storagePath = urlObj.pathname.includes(publicPrefix)
-    ? urlObj.pathname.split(publicPrefix)[1]
-    : fileUrl // Fallback: use as-is if format doesn't match
+  if (!urlObj.pathname.includes(publicPrefix)) {
+    // Fail closed — a malformed row is a schema bug, not something we
+    // should paper over by passing the raw URL into createSignedUrl.
+    console.error('Download: file_url is not a canonical Supabase Storage URL', { productId })
+    return NextResponse.json(
+      { error: { message: 'Download not available. Contact support.' } },
+      { status: 500 },
+    )
+  }
+  const storagePath = urlObj.pathname.split(publicPrefix)[1]
 
   // Generate a signed URL (expires in 1 hour)
   const { data: signedData, error: signError } = await admin.storage

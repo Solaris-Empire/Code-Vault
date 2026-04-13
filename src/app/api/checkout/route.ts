@@ -4,6 +4,7 @@ import Stripe from 'stripe'
 import { requireAuth } from '@/lib/auth/verify'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
 import { getStripe } from '@/lib/stripe/client'
+import { checkRateLimit, rateLimitConfigs } from '@/lib/security/rate-limit'
 import {
   DEFAULT_LICENSE_TIER,
   getLicenseTierDef,
@@ -26,6 +27,11 @@ const checkoutSchema = z.object({
 // The buyer is redirected to Stripe's hosted checkout page.
 // After payment, the Stripe webhook creates the order + license.
 export async function POST(request: NextRequest) {
+  // Strict throttle — every call creates a Stripe Checkout Session
+  // (API cost + rate-limit pressure on our Stripe account).
+  const rl = checkRateLimit(request, rateLimitConfigs.order)
+  if (!rl.allowed) return rl.error!
+
   // Only authenticated users can purchase
   const auth = await requireAuth(request)
   if (!auth.success) return auth.error!

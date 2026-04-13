@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
 import { requireAuth } from '@/lib/auth/verify'
 import { logFileUpload, sanitizeFilename } from '@/lib/security'
+import { checkRateLimit, rateLimitConfigs } from '@/lib/security/rate-limit'
 import crypto from 'crypto'
 
 export const dynamic = 'force-dynamic'
@@ -19,7 +20,7 @@ const BUCKET_CONFIG: Record<string, {
   thumbnails: {
     allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
     allowedExtensions: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
-    maxSizeMB: 5,
+    maxSizeMB: 10,
     pathPrefix: 'products',
   },
   'product-files': {
@@ -45,9 +46,34 @@ const BUCKET_CONFIG: Record<string, {
     maxSizeMB: 5,
     pathPrefix: 'products',
   },
+  // Deliverables from sellers to buyers for hire orders. Broad file
+  // tolerance because engagements vary (zips, PDFs, screenshots, code).
+  'service-deliveries': {
+    allowedTypes: [
+      'application/zip', 'application/x-zip-compressed',
+      'application/gzip', 'application/x-gzip',
+      'application/x-tar', 'application/x-compressed-tar',
+      'application/pdf',
+      'image/jpeg', 'image/png', 'image/webp', 'image/gif',
+      'text/plain', 'text/markdown',
+      'application/octet-stream',
+    ],
+    allowedExtensions: [
+      'zip', 'tar.gz', 'tgz', 'gz',
+      'pdf', 'jpg', 'jpeg', 'png', 'webp', 'gif',
+      'txt', 'md', 'json',
+    ],
+    maxSizeMB: 200,
+    pathPrefix: 'deliveries',
+  },
 }
 
 export async function POST(request: NextRequest) {
+  // Strict throttle — uploads allow up to 500MB per call. Without this
+  // a single authed account can eat storage + egress budget in minutes.
+  const rl = checkRateLimit(request, rateLimitConfigs.upload)
+  if (!rl.allowed) return rl.error!
+
   // Verify user authentication
   const auth = await requireAuth(request)
   if (!auth.success) return auth.error!
@@ -121,6 +147,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { error: { message: 'File does not appear to be a valid archive (ZIP, GZIP, RAR)' } },
       { status: 400 }
+    )
+  }
+
+  // Service deliveries accept a broader mix (archives, PDFs, images,
+  // text). Verify the declared extension matches the actual bytes so a
+  // seller can't smuggle an executable through as ".pdf".
+  if (bucketName === 'service-deliveries' && !verifyDeliveryMagicBytes(buffer, fileExt)) {
+    return NextResponse.json(
+      { error: { message: 'File content does not match the declared file type' } },
+      { status: 400 },
     )
   }
 
@@ -214,4 +250,36 @@ function verifyArchiveMagicBytes(buffer: Uint8Array): boolean {
   if (buffer[0] === 0x52 && buffer[1] === 0x61 && buffer[2] === 0x72 && buffer[3] === 0x21) return true
 
   return false
+}
+
+// ─── Helper: verify service-delivery magic bytes ───────────────────
+// Service deliveries allow a mixed bag — verify each extension maps to
+// the expected header so a seller can't smuggle an executable through
+// as ".pdf" or ".png". Plaintext formats (txt/md/json) have no magic
+// bytes, so we accept those based on extension alone.
+function verifyDeliveryMagicBytes(buffer: Uint8Array, ext: string): boolean {
+  if (ext === 'txt' || ext === 'md' || ext === 'json') return true
+  if (buffer.length < 4) return false
+
+  switch (ext) {
+    case 'zip':
+      return verifyArchiveMagicBytes(buffer) && buffer[0] === 0x50 && buffer[1] === 0x4B
+    case 'gz':
+    case 'tgz':
+    case 'tar.gz':
+      return buffer[0] === 0x1F && buffer[1] === 0x8B
+    case 'pdf':
+      return buffer[0] === 0x25 && buffer[1] === 0x50 && buffer[2] === 0x44 && buffer[3] === 0x46 // %PDF
+    case 'jpg':
+    case 'jpeg':
+      return buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF
+    case 'png':
+      return buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47
+    case 'gif':
+      return buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x38
+    case 'webp':
+      return buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46 // RIFF
+    default:
+      return false
+  }
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { createServerClient } from '@supabase/ssr'
+import { checkRateLimit, rateLimitConfigs } from '@/lib/security/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
@@ -67,6 +68,10 @@ const EXT_FOR_MIME: Record<string, string> = {
 }
 
 export async function POST(request: NextRequest) {
+  // Strict throttle — each call accepts up to 5 × 5MB images.
+  const rl = checkRateLimit(request, rateLimitConfigs.upload)
+  if (!rl.allowed) return rl.error!
+
   try {
     const supabase = await getSupabaseServer()
     const { data: { user } } = await supabase.auth.getUser()
