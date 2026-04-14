@@ -4,6 +4,8 @@ import { useRef, useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Download, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SellerTierBadge } from "@/components/seller/seller-tier-badge";
+import type { SellerTier } from "@/lib/seller/tier";
 
 export interface BestSellerProduct {
   id: string;
@@ -16,6 +18,8 @@ export interface BestSellerProduct {
   reviewCount?: number;
   downloadCount?: number;
   category?: string | null;
+  seller?: string | null;
+  sellerTier?: SellerTier | null;
   isNew?: boolean;
   onSale?: boolean;
   isBestseller?: boolean;
@@ -138,7 +142,7 @@ export function BestSellersCarousel({
                     ) : (
                       <div className="absolute inset-0 bg-linear-to-br from-(--brand-primary)/20 to-(--brand-dark)/10" />
                     )}
-                    <div className="absolute top-2 left-2 flex flex-col gap-1">
+                    <div className="absolute top-2 left-2 flex flex-col gap-1 items-start">
                       {product.isBestseller && (
                         <span className="rounded-full bg-(--brand-amber) text-white text-[11px] font-bold px-2 py-0.5 uppercase tracking-wide">
                           Bestseller
@@ -153,6 +157,9 @@ export function BestSellersCarousel({
                         <span className="rounded-full bg-(--brand-primary) text-white text-[11px] font-bold px-2 py-0.5 uppercase tracking-wide">
                           New
                         </span>
+                      )}
+                      {product.sellerTier && product.sellerTier !== "unverified" && (
+                        <SellerTierBadge tier={product.sellerTier} size="avatar" />
                       )}
                     </div>
                   </div>

@@ -37,7 +37,7 @@ export function AccountSidebar() {
   const pathname = usePathname()
 
   return (
-    <nav className="bg-white rounded-lg border p-4 space-y-1">
+    <nav className="bg-white rounded-none border p-4 space-y-1">
       {accountLinks.map((link) => {
         const isActive =
           link.href === '/account'
@@ -48,10 +48,10 @@ export function AccountSidebar() {
           <Link
             key={link.href}
             href={link.href}
-            className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
+            className={`flex items-center gap-3 px-3 py-2 rounded-none transition-colors ${
               isActive
                 ? 'bg-green-50 text-green-700 font-semibold'
-                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                : 'text-(--color-text-muted) hover:bg-gray-100 hover:text-gray-900'
             }`}
           >
             <link.icon className="h-5 w-5" />

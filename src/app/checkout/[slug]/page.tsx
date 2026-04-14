@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import {
   Code2,
   Shield,
@@ -11,9 +12,15 @@ import {
   Check,
   Star,
   Download,
+  X,
 } from 'lucide-react'
+import {
+  LICENSE_TIERS,
+  DEFAULT_LICENSE_TIER,
+  resolveAllLicensePrices,
+  type LicenseTier,
+} from '@/lib/constants/licensing'
 
-// ─── Types ──────────────────────────────────────────────────────────
 interface Product {
   id: string
   title: string
@@ -24,23 +31,24 @@ interface Product {
   download_count: number
   avg_rating: number | null
   review_count: number
+  license_prices_cents: Partial<Record<LicenseTier, number>> | null
   seller: { display_name: string } | null
 }
 
-type LicenseType = 'regular' | 'extended'
+function formatPrice(cents: number) {
+  return `$${(cents / 100).toFixed(2)}`
+}
 
 export default function CheckoutPage() {
   const params = useParams()
-  const router = useRouter()
   const slug = params.slug as string
 
   const [product, setProduct] = useState<Product | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [licenseType, setLicenseType] = useState<LicenseType>('regular')
+  const [licenseType, setLicenseType] = useState<LicenseTier>(DEFAULT_LICENSE_TIER)
 
-  // Fetch product details
   useEffect(() => {
     async function loadProduct() {
       try {
@@ -57,12 +65,10 @@ export default function CheckoutPage() {
     loadProduct()
   }, [slug])
 
-  // Calculate price based on license type
-  const priceCents = product
-    ? licenseType === 'extended'
-      ? product.price_cents * 5
-      : product.price_cents
-    : 0
+  const prices = product
+    ? resolveAllLicensePrices(product.price_cents, product.license_prices_cents)
+    : { personal: 0, commercial: 0, extended: 0 }
+  const priceCents = prices[licenseType]
 
   const handleCheckout = async () => {
     if (!product) return
@@ -80,12 +86,8 @@ export default function CheckoutPage() {
       })
 
       const result = await res.json()
+      if (!res.ok) throw new Error(result.error?.message || 'Checkout failed')
 
-      if (!res.ok) {
-        throw new Error(result.error?.message || 'Checkout failed')
-      }
-
-      // Redirect to Stripe Checkout
       if (result.data?.url) {
         window.location.href = result.data.url
       }
@@ -97,19 +99,19 @@ export default function CheckoutPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
+      <div className="min-h-screen bg-(--color-background) flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-(--brand-primary)" />
       </div>
     )
   }
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
+      <div className="min-h-screen bg-(--color-background) flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-2">Product Not Found</h1>
-          <p className="text-gray-400 mb-4">This product doesn't exist or is no longer available.</p>
-          <Link href="/products" className="text-violet-400 hover:text-violet-300">
+          <h1 className="text-2xl font-bold mb-2 text-(--color-text-primary)">Product Not Found</h1>
+          <p className="text-(--color-text-secondary) mb-4">This product doesn&apos;t exist or is no longer available.</p>
+          <Link href="/products" className="text-(--brand-primary) hover:underline">
             Browse Products
           </Link>
         </div>
@@ -118,60 +120,64 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
+    <div className="min-h-screen bg-(--color-background) text-(--color-text-primary)">
       {/* Nav */}
-      <nav className="border-b border-gray-800 bg-gray-950/80 backdrop-blur-md sticky top-0 z-50">
+      <nav className="border-b border-(--color-border) bg-(--color-surface) sticky top-0 z-40">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <Code2 className="h-7 w-7 text-violet-500" />
+            <Code2 className="h-7 w-7 text-(--brand-primary)" />
             <span className="text-xl font-bold">CodeVault</span>
           </Link>
-          <span className="text-sm text-gray-400">Secure Checkout</span>
+          <span className="text-sm text-(--color-text-secondary) flex items-center gap-1.5">
+            <Shield className="h-4 w-4" /> Secure Checkout
+          </span>
         </div>
       </nav>
 
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
         <Link
           href={`/products/${slug}`}
-          className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors mb-8"
+          className="inline-flex items-center gap-2 text-sm text-(--color-text-secondary) hover:text-(--color-text-primary) mb-6"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to product
         </Link>
 
         {error && (
-          <div className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 text-sm">
             {error}
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-          {/* Left: Product & License Selection */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          {/* Left: product + tier picker */}
           <div className="lg:col-span-3 space-y-6">
             {/* Product summary */}
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-              <h2 className="text-lg font-semibold mb-4">Product</h2>
+            <div className="bg-(--color-surface) border border-(--color-border) p-6">
+              <h2 className="text-sm font-semibold text-(--color-text-muted) uppercase tracking-wider mb-4">Your purchase</h2>
               <div className="flex items-start gap-4">
                 {product.thumbnail_url ? (
-                  <img
+                  <Image
                     src={product.thumbnail_url}
                     alt={product.title}
-                    className="w-20 h-20 rounded-lg object-cover"
+                    width={80}
+                    height={80}
+                    className="w-20 h-20 object-cover"
                   />
                 ) : (
-                  <div className="w-20 h-20 rounded-lg bg-gray-800 flex items-center justify-center">
-                    <Code2 className="h-8 w-8 text-gray-600" />
+                  <div className="w-20 h-20 bg-(--color-elevated) flex items-center justify-center">
+                    <Code2 className="h-8 w-8 text-(--color-text-muted)" />
                   </div>
                 )}
                 <div className="flex-1">
-                  <h3 className="font-semibold text-white">{product.title}</h3>
-                  <p className="text-gray-500 text-sm mt-1">
+                  <h3 className="font-semibold text-(--color-text-primary)">{product.title}</h3>
+                  <p className="text-(--color-text-secondary) text-sm mt-1">
                     by {product.seller?.display_name || 'Unknown'}
                   </p>
-                  <div className="flex items-center gap-3 mt-2 text-sm text-gray-400">
+                  <div className="flex items-center gap-3 mt-2 text-sm text-(--color-text-secondary)">
                     {product.avg_rating && (
                       <span className="flex items-center gap-1">
-                        <Star className="h-3.5 w-3.5 fill-yellow-500 text-yellow-500" />
+                        <Star className="h-3.5 w-3.5 fill-(--brand-amber) text-(--brand-amber)" />
                         {Number(product.avg_rating).toFixed(1)}
                       </span>
                     )}
@@ -184,117 +190,116 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {/* License type selection */}
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-              <h2 className="text-lg font-semibold mb-4">Choose License</h2>
-              <div className="space-y-3">
-                {/* Regular License */}
-                <button
-                  type="button"
-                  onClick={() => setLicenseType('regular')}
-                  className={`w-full text-left p-4 rounded-lg border transition-all ${
-                    licenseType === 'regular'
-                      ? 'border-violet-500 bg-violet-500/10'
-                      : 'border-gray-700 bg-gray-800 hover:border-gray-600'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        {licenseType === 'regular' && (
-                          <Check className="h-4 w-4 text-violet-400" />
-                        )}
-                        <span className="font-medium">Regular License</span>
-                      </div>
-                      <p className="text-sm text-gray-400 mt-1">
-                        Use in a single end product which end users are not charged for
-                      </p>
-                    </div>
-                    <span className="text-lg font-bold text-white">
-                      ${(product.price_cents / 100).toFixed(2)}
-                    </span>
-                  </div>
-                </button>
+            {/* 3-tier license selector */}
+            <div className="bg-(--color-surface) border border-(--color-border) p-6">
+              <h2 className="text-sm font-semibold text-(--color-text-muted) uppercase tracking-wider mb-1">Choose a license</h2>
+              <p className="text-xs text-(--color-text-secondary) mb-5">Pick the tier that matches how you&apos;ll use this code.</p>
 
-                {/* Extended License */}
-                <button
-                  type="button"
-                  onClick={() => setLicenseType('extended')}
-                  className={`w-full text-left p-4 rounded-lg border transition-all ${
-                    licenseType === 'extended'
-                      ? 'border-violet-500 bg-violet-500/10'
-                      : 'border-gray-700 bg-gray-800 hover:border-gray-600'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        {licenseType === 'extended' && (
-                          <Check className="h-4 w-4 text-violet-400" />
-                        )}
-                        <span className="font-medium">Extended License</span>
+              <div className="space-y-3">
+                {LICENSE_TIERS.map((tier) => {
+                  const active = licenseType === tier.id
+                  return (
+                    <button
+                      key={tier.id}
+                      type="button"
+                      onClick={() => setLicenseType(tier.id)}
+                      className={`w-full text-left p-5 border transition-colors ${
+                        active
+                          ? 'border-(--brand-primary) bg-(--brand-primary)/5'
+                          : 'border-(--color-border) bg-(--color-surface) hover:border-(--brand-primary)/50'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <div className={`h-4 w-4 border flex items-center justify-center shrink-0 ${active ? 'bg-(--brand-primary) border-(--brand-primary)' : 'border-(--color-border)'}`}>
+                              {active && <Check className="h-3 w-3 text-white" />}
+                            </div>
+                            <span className="font-semibold text-(--color-text-primary)">{tier.name}</span>
+                            {tier.id === 'commercial' && (
+                              <span className="text-[10px] font-semibold tracking-wider uppercase bg-(--brand-amber) text-white px-1.5 py-0.5">Popular</span>
+                            )}
+                          </div>
+                          <p className="text-sm text-(--color-text-secondary) mt-1 ml-6">{tier.tagline}</p>
+
+                          {active && (
+                            <div className="mt-4 ml-6 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5">
+                              {tier.allows.map((a) => (
+                                <div key={a} className="flex items-start gap-1.5 text-xs text-(--color-text-secondary)">
+                                  <Check className="h-3.5 w-3.5 text-(--brand-primary) shrink-0 mt-0.5" />
+                                  <span>{a}</span>
+                                </div>
+                              ))}
+                              {tier.restrictions.map((r) => (
+                                <div key={r} className="flex items-start gap-1.5 text-xs text-(--color-text-muted)">
+                                  <X className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                                  <span>{r}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="text-lg font-bold text-(--color-text-primary)">
+                            {formatPrice(prices[tier.id])}
+                          </div>
+                          {tier.priceMultiplier > 1 && (
+                            <div className="text-[10px] text-(--color-text-muted) uppercase tracking-wider">{tier.priceMultiplier}x base</div>
+                          )}
+                        </div>
                       </div>
-                      <p className="text-sm text-gray-400 mt-1">
-                        Use in a single end product which end users can be charged for
-                      </p>
-                    </div>
-                    <span className="text-lg font-bold text-white">
-                      ${(product.price_cents * 5 / 100).toFixed(2)}
-                    </span>
-                  </div>
-                </button>
+                    </button>
+                  )
+                })}
               </div>
             </div>
           </div>
 
-          {/* Right: Order Summary & Pay */}
+          {/* Right: summary + pay */}
           <div className="lg:col-span-2">
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 sticky top-24">
-              <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
+            <div className="bg-(--color-surface) border border-(--color-border) p-6 lg:sticky lg:top-24">
+              <h2 className="text-sm font-semibold text-(--color-text-muted) uppercase tracking-wider mb-4">Order summary</h2>
 
               <div className="space-y-3 text-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">{product.title}</span>
-                  <span className="text-white">${(priceCents / 100).toFixed(2)}</span>
+                  <span className="text-(--color-text-secondary) truncate pr-2">{product.title}</span>
+                  <span className="text-(--color-text-primary) font-medium whitespace-nowrap">{formatPrice(priceCents)}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">License</span>
-                  <span className="text-gray-300 capitalize">{licenseType}</span>
+                  <span className="text-(--color-text-secondary)">License</span>
+                  <span className="text-(--color-text-primary) capitalize">{licenseType}</span>
                 </div>
-                <div className="border-t border-gray-800 pt-3 flex items-center justify-between">
-                  <span className="font-semibold text-white">Total</span>
-                  <span className="text-2xl font-bold text-violet-400">
-                    ${(priceCents / 100).toFixed(2)}
-                  </span>
+                <div className="border-t border-(--color-border) pt-3 flex items-center justify-between">
+                  <span className="font-semibold text-(--color-text-primary)">Total</span>
+                  <span className="text-2xl font-bold text-(--brand-primary)">{formatPrice(priceCents)}</span>
                 </div>
               </div>
 
               <button
                 onClick={handleCheckout}
                 disabled={isProcessing}
-                className="w-full mt-6 flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 text-white py-3 rounded-lg font-semibold transition-all hover:shadow-lg hover:shadow-violet-500/25 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full mt-6 flex items-center justify-center gap-2 bg-(--brand-primary) hover:opacity-90 text-white py-3 font-semibold transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isProcessing ? (
                   <><Loader2 className="h-4 w-4 animate-spin" /> Processing...</>
                 ) : (
-                  <><Shield className="h-4 w-4" /> Pay ${(priceCents / 100).toFixed(2)}</>
+                  <><Shield className="h-4 w-4" /> Pay {formatPrice(priceCents)}</>
                 )}
               </button>
 
-              <p className="text-xs text-gray-500 text-center mt-4">
-                Secure payment powered by Stripe. You'll receive instant access after payment.
+              <p className="text-xs text-(--color-text-muted) text-center mt-4">
+                Secure payment via Stripe. Instant access after payment.
               </p>
 
-              {/* Trust badges */}
-              <div className="mt-6 pt-4 border-t border-gray-800 space-y-2">
+              <div className="mt-6 pt-4 border-t border-(--color-border) space-y-2">
                 {[
                   'Instant digital delivery',
-                  'Lifetime access to updates',
-                  'Secure payment via Stripe',
+                  'Free lifetime updates',
+                  'Unique license key',
                   '30-day money-back guarantee',
                 ].map((item) => (
-                  <div key={item} className="flex items-center gap-2 text-xs text-gray-400">
-                    <Check className="h-3.5 w-3.5 text-green-400 flex-shrink-0" />
+                  <div key={item} className="flex items-center gap-2 text-xs text-(--color-text-secondary)">
+                    <Check className="h-3.5 w-3.5 text-(--brand-primary) shrink-0" />
                     {item}
                   </div>
                 ))}

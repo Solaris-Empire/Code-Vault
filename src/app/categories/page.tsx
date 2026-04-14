@@ -50,7 +50,7 @@ export default async function CategoriesPage() {
         <div className="container mx-auto px-4 py-14 md:py-20">
           <span className="text-green-600 text-sm font-semibold tracking-wider uppercase mb-2 block">Explore</span>
           <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-3">Categories</h1>
-          <p className="text-gray-400 max-w-2xl leading-relaxed">
+          <p className="text-(--color-text-secondary) max-w-2xl leading-relaxed">
             Explore our curated collection of code categories. From PHP scripts to
             full applications — find exactly what you need for your next project.
           </p>
@@ -63,10 +63,10 @@ export default async function CategoriesPage() {
           {safeCategories.length === 0 ? (
             <div className="text-center py-20">
               <div className="w-20 h-20 rounded-none bg-green-50 flex items-center justify-center mx-auto mb-5">
-                <FolderOpen className="h-10 w-10 text-gray-300" />
+                <FolderOpen className="h-10 w-10 text-(--color-text-secondary)" />
               </div>
-              <h2 className="text-xl font-semibold text-gray-500">No categories yet</h2>
-              <p className="text-gray-400 mt-2">Categories will appear here once an admin creates them.</p>
+              <h2 className="text-xl font-semibold text-(--color-text-muted)">No categories yet</h2>
+              <p className="text-(--color-text-secondary) mt-2">Categories will appear here once an admin creates them.</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
@@ -83,9 +83,9 @@ export default async function CategoriesPage() {
                       {category.name}
                     </h3>
                     {category.description && (
-                      <p className="text-gray-400 text-sm mt-1 line-clamp-2">{category.description}</p>
+                      <p className="text-(--color-text-secondary) text-sm mt-1 line-clamp-2">{category.description}</p>
                     )}
-                    <div className="mt-3 flex items-center gap-1.5 text-xs text-gray-400">
+                    <div className="mt-3 flex items-center gap-1.5 text-xs text-(--color-text-secondary)">
                       <Code2 className="h-3.5 w-3.5" />
                       <span>{productCount} {productCount === 1 ? 'product' : 'products'}</span>
                     </div>

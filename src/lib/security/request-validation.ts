@@ -10,7 +10,7 @@ const SIZE_LIMITS = {
 
 // Endpoints with custom size limits
 const ENDPOINT_LIMITS: Record<string, number> = {
-  '/api/upload': 10 * 1024 * 1024, // 10MB for uploads
+  '/api/upload': 500 * 1024 * 1024, // 500MB — product code archives can be large
   '/api/admin/import': 50 * 1024 * 1024, // 50MB for imports
   '/api/chat': 64 * 1024 // 64KB for chat messages
 }

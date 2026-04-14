@@ -12,6 +12,11 @@ import {
   FileCode,
   LayoutDashboard,
   X,
+  Briefcase,
+  Clock,
+  Compass,
+  Globe2,
+  MessagesSquare,
 } from "lucide-react";
 import { GlobalSearch } from "@/components/ui/search";
 import {
@@ -24,6 +29,22 @@ import {
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 
+type BetaFlags = {
+  journey: boolean;
+  community_map: boolean;
+  community_feed: boolean;
+  hire: boolean;
+  jobs: boolean;
+};
+
+const DEFAULT_BETA_FLAGS: BetaFlags = {
+  journey: true,
+  community_map: true,
+  community_feed: true,
+  hire: true,
+  jobs: true,
+};
+
 const navCategories = [
   { name: "PHP", slug: "php-scripts" },
   { name: "JavaScript", slug: "javascript" },
@@ -35,7 +56,7 @@ const navCategories = [
   { name: "Full Apps", slug: "full-apps" },
 ] as const;
 
-export function Header() {
+export function Header({ betaFlags = DEFAULT_BETA_FLAGS }: { betaFlags?: BetaFlags } = {}) {
   const pathname = usePathname();
   const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -128,9 +149,24 @@ export function Header() {
                 <DropdownMenuItem onClick={() => router.push("/dashboard/purchases")} className="flex items-center gap-2 cursor-pointer">
                   <Package className="h-4 w-4" /> My Purchases
                 </DropdownMenuItem>
+                {betaFlags.hire && (
+                  <DropdownMenuItem onClick={() => router.push("/orders/services")} className="flex items-center gap-2 cursor-pointer">
+                    <Briefcase className="h-4 w-4" /> My Service Orders
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={() => router.push("/seller/dashboard")} className="flex items-center gap-2 cursor-pointer">
                   <FileCode className="h-4 w-4" /> Seller Dashboard
                 </DropdownMenuItem>
+                {betaFlags.journey && (
+                  <DropdownMenuItem onClick={() => router.push("/my-journey")} className="flex items-center gap-2 cursor-pointer">
+                    <Compass className="h-4 w-4" /> My Journey
+                  </DropdownMenuItem>
+                )}
+                {betaFlags.hire && (
+                  <DropdownMenuItem onClick={() => router.push("/seller/orders")} className="flex items-center gap-2 cursor-pointer">
+                    <Clock className="h-4 w-4" /> Incoming Orders
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={signOut}
@@ -158,13 +194,35 @@ export function Header() {
             </Link>
           )}
 
-          {/* Become a Seller — the star */}
+          {/* Hire a Developer — primary CTA, always visible */}
+          {betaFlags.hire && (
+            <Link
+              href="/hire"
+              className={cn(
+                "hidden sm:flex items-center gap-2",
+                "bg-(--brand-primary) rounded-lg",
+                "px-4 h-10 text-white font-medium text-sm whitespace-nowrap",
+                "shadow-[0_2px_8px_rgba(27,107,58,0.3)]",
+                "hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(27,107,58,0.4)]",
+                "active:translate-y-0",
+                "transition-all duration-(--duration-base)",
+                "ease-(--ease-premium)",
+                pathname.startsWith("/hire") && "ring-2 ring-white/40"
+              )}
+            >
+              <Briefcase className="h-4 w-4" />
+              <span>Hire a Developer</span>
+            </Link>
+          )}
+
+          {/* Become a Seller — secondary CTA */}
           <Link
             href="/register?role=seller"
+            prefetch={false}
             className={cn(
-              "hidden sm:flex items-center gap-2",
+              "hidden lg:flex items-center gap-2",
               "bg-(--brand-amber) rounded-lg",
-              "px-4 h-10 text-white font-medium text-sm",
+              "px-4 h-10 text-white font-medium text-sm whitespace-nowrap",
               "shadow-(--shadow-amber)",
               "hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(232,134,26,0.4)]",
               "active:translate-y-0",
@@ -196,6 +254,42 @@ export function Header() {
               All Categories
             </Link>
 
+            {betaFlags.hire && (
+              <Link
+                href="/hire"
+                className={cn(
+                  "shrink-0 flex items-center gap-1.5",
+                  "rounded-md px-3 py-1.5",
+                  "text-sm font-medium whitespace-nowrap",
+                  "transition-colors duration-(--duration-fast)",
+                  pathname.startsWith("/hire")
+                    ? "bg-(--brand-primary) text-white"
+                    : "text-(--brand-primary) hover:bg-(--brand-primary)/10"
+                )}
+              >
+                <Briefcase className="h-4 w-4" />
+                Hire a Developer
+              </Link>
+            )}
+
+            {betaFlags.jobs && (
+              <Link
+                href="/jobs"
+                className={cn(
+                  "shrink-0 flex items-center gap-1.5",
+                  "rounded-md px-3 py-1.5",
+                  "text-sm font-medium whitespace-nowrap",
+                  "transition-colors duration-(--duration-fast)",
+                  pathname.startsWith("/jobs")
+                    ? "bg-(--brand-amber) text-white"
+                    : "text-(--brand-amber) hover:bg-(--brand-amber)/10"
+                )}
+              >
+                <Briefcase className="h-4 w-4" />
+                Jobs
+              </Link>
+            )}
+
             <div className="w-px h-5 bg-(--color-border) shrink-0 mx-0.5" />
 
             {navCategories.map((cat) => {
@@ -221,6 +315,42 @@ export function Header() {
             })}
 
             <div className="w-px h-5 bg-(--color-border) shrink-0 mx-0.5" />
+
+            {betaFlags.community_feed && (
+              <Link
+                href="/community"
+                className={cn(
+                  "shrink-0 flex items-center gap-1.5",
+                  "rounded-md px-3 py-1.5",
+                  "text-sm font-medium whitespace-nowrap",
+                  "transition-colors duration-(--duration-fast)",
+                  pathname === "/community"
+                    ? "bg-(--color-elevated) text-foreground"
+                    : "text-(--color-text-secondary) hover:bg-(--color-elevated)"
+                )}
+              >
+                <MessagesSquare className="h-4 w-4" />
+                DevSocial
+              </Link>
+            )}
+
+            {betaFlags.community_map && (
+            <Link
+              href="/community/map"
+              className={cn(
+                "shrink-0 flex items-center gap-1.5",
+                "rounded-md px-3 py-1.5",
+                "text-sm font-medium whitespace-nowrap",
+                "transition-colors duration-(--duration-fast)",
+                pathname.startsWith("/community/map")
+                  ? "bg-(--color-elevated) text-foreground"
+                  : "text-(--color-text-secondary) hover:bg-(--color-elevated)"
+              )}
+            >
+              <Globe2 className="h-4 w-4" />
+              World Map
+            </Link>
+            )}
 
             <Link
               href="/products?sort=popular"
@@ -282,6 +412,46 @@ export function Header() {
               >
                 All Categories
               </Link>
+              {betaFlags.hire && (
+                <Link
+                  href="/hire"
+                  onClick={() => setDrawerOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-semibold text-(--brand-primary) bg-(--brand-primary)/5 hover:bg-(--brand-primary)/10"
+                >
+                  <Briefcase className="h-4 w-4" />
+                  Hire a Developer
+                </Link>
+              )}
+              {betaFlags.jobs && (
+                <Link
+                  href="/jobs"
+                  onClick={() => setDrawerOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-semibold text-(--brand-amber) bg-(--brand-amber)/5 hover:bg-(--brand-amber)/10"
+                >
+                  <Briefcase className="h-4 w-4" />
+                  Tech Jobs
+                </Link>
+              )}
+              {betaFlags.community_feed && (
+                <Link
+                  href="/community"
+                  onClick={() => setDrawerOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium hover:bg-(--color-elevated)"
+                >
+                  <MessagesSquare className="h-4 w-4" />
+                  DevSocial
+                </Link>
+              )}
+              {betaFlags.community_map && (
+                <Link
+                  href="/community/map"
+                  onClick={() => setDrawerOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium hover:bg-(--color-elevated)"
+                >
+                  <Globe2 className="h-4 w-4" />
+                  World Map
+                </Link>
+              )}
 
               <div className="px-3 pt-4 pb-1">
                 <p className="text-xs font-semibold text-(--color-text-muted) uppercase tracking-wider">
@@ -303,6 +473,7 @@ export function Header() {
               <div className="mt-4 p-3">
                 <Link
                   href="/register?role=seller"
+                  prefetch={false}
                   onClick={() => setDrawerOpen(false)}
                   className="w-full flex items-center justify-center gap-2 bg-(--brand-amber) text-white rounded-lg h-11 font-semibold text-sm shadow-(--shadow-amber)"
                 >

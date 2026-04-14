@@ -39,13 +39,19 @@ export function useAuth() {
     return data
   }
 
-  const signUp = async (email: string, password: string, fullName: string) => {
+  const signUp = async (
+    email: string,
+    password: string,
+    fullName: string,
+    role: 'buyer' | 'seller' = 'buyer'
+  ) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
           full_name: fullName,
+          role,
         },
         emailRedirectTo: `${window.location.origin}/verify-email`,
       },

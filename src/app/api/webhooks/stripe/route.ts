@@ -55,7 +55,7 @@ export async function POST(request: Request) {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
-        if (session.payment_status === 'paid') {
+        if (session.payment_status === 'paid' && isCodeVaultSession(session)) {
           if (session.metadata?.orderType === 'service') {
             await handleSuccessfulServiceOrder(session)
           } else {
@@ -67,6 +67,7 @@ export async function POST(request: Request) {
 
       case 'checkout.session.async_payment_succeeded': {
         const session = event.data.object as Stripe.Checkout.Session
+        if (!isCodeVaultSession(session)) break
         if (session.metadata?.orderType === 'service') {
           await handleSuccessfulServiceOrder(session)
         } else {
@@ -119,6 +120,16 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ received: true })
+}
+
+// Our Stripe account is shared across multiple Solaris businesses. A
+// CodeVault session always carries either a productId (product checkout)
+// or orderType=service (service checkout) in its metadata. Anything else
+// arriving on this endpoint belongs to a sibling business and must be
+// silently acked — throwing would make Stripe retry for 3 days.
+function isCodeVaultSession(session: Stripe.Checkout.Session): boolean {
+  const meta = session.metadata ?? {}
+  return Boolean(meta.productId) || meta.orderType === 'service'
 }
 
 // Handle a successful digital product purchase

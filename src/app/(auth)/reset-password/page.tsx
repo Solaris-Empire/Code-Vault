@@ -94,17 +94,17 @@ export default function ResetPasswordPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-teal-50 px-4">
         <div className="max-w-md w-full">
-          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+          <div className="bg-white rounded-none shadow-xl p-8 text-center">
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <AlertCircle className="h-8 w-8 text-red-600" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Invalid or expired link</h1>
-            <p className="text-gray-600 mb-6">
+            <p className="text-(--color-text-muted) mb-6">
               This password reset link is invalid or has expired. Please request a new one.
             </p>
             <Link
               href="/forgot-password"
-              className="inline-flex items-center justify-center w-full bg-emerald-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-emerald-700 transition-colors"
+              className="inline-flex items-center justify-center w-full bg-emerald-600 text-white py-3 px-4 rounded-none font-medium hover:bg-emerald-700 transition-colors"
             >
               Request new link
             </Link>
@@ -119,17 +119,17 @@ export default function ResetPasswordPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-teal-50 px-4">
         <div className="max-w-md w-full">
-          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+          <div className="bg-white rounded-none shadow-xl p-8 text-center">
             <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle className="h-8 w-8 text-emerald-600" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Password reset successful!</h1>
-            <p className="text-gray-600 mb-6">
+            <p className="text-(--color-text-muted) mb-6">
               Your password has been updated. You'll be redirected to login shortly.
             </p>
             <Link
               href="/login"
-              className="inline-flex items-center justify-center w-full bg-emerald-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-emerald-700 transition-colors"
+              className="inline-flex items-center justify-center w-full bg-emerald-600 text-white py-3 px-4 rounded-none font-medium hover:bg-emerald-700 transition-colors"
             >
               Go to login
             </Link>
@@ -142,21 +142,21 @@ export default function ResetPasswordPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-teal-50 px-4">
       <div className="max-w-md w-full">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white rounded-none shadow-xl p-8">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Lock className="h-8 w-8 text-emerald-600" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900">Reset your password</h1>
-            <p className="text-gray-600 mt-2">
+            <p className="text-(--color-text-muted) mt-2">
               Enter your new password below
             </p>
           </div>
 
           {/* Error */}
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-none text-red-600 text-sm">
               {error}
             </div>
           )}
@@ -176,12 +176,12 @@ export default function ResetPasswordPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder="Enter new password"
-                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-(--color-text-muted) hover:text-gray-700"
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -194,7 +194,7 @@ export default function ResetPasswordPage() {
                     <div
                       key={index}
                       className={`flex items-center gap-2 text-sm ${
-                        req.test ? 'text-emerald-600' : 'text-gray-500'
+                        req.test ? 'text-emerald-600' : 'text-(--color-text-muted)'
                       }`}
                     >
                       <CheckCircle className={`h-4 w-4 ${req.test ? 'opacity-100' : 'opacity-30'}`} />
@@ -218,12 +218,12 @@ export default function ResetPasswordPage() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   placeholder="Confirm new password"
-                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-(--color-text-muted) hover:text-gray-700"
                 >
                   {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -236,7 +236,7 @@ export default function ResetPasswordPage() {
             <button
               type="submit"
               disabled={isLoading || !isPasswordValid || password !== confirmPassword}
-              className="w-full bg-emerald-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              className="w-full bg-emerald-600 text-white py-3 px-4 rounded-none font-medium hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
             >
               {isLoading ? (
                 <>

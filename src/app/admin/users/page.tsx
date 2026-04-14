@@ -69,7 +69,7 @@ export default function AdminUsersPage() {
 
   const roleConfig: Record<string, { icon: typeof User; color: string; bg: string }> = {
     admin: { icon: Shield, color: 'text-red-400', bg: 'bg-red-400/10' },
-    seller: { icon: Store, color: 'text-violet-400', bg: 'bg-violet-400/10' },
+    seller: { icon: Store, color: 'text-(--brand-primary)', bg: 'bg-(--brand-primary)/10' },
     buyer: { icon: ShoppingBag, color: 'text-blue-400', bg: 'bg-blue-400/10' },
   }
 
@@ -84,10 +84,10 @@ export default function AdminUsersPage() {
             <button
               key={role}
               onClick={() => setRoleFilter(role)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors capitalize ${
+              className={`px-4 py-2 rounded-none text-sm font-medium transition-colors capitalize ${
                 roleFilter === role
-                  ? 'bg-violet-600 text-white'
-                  : 'bg-gray-800 text-gray-400 hover:text-white'
+                  ? 'bg-(--brand-primary) text-white'
+                  : 'bg-(--color-elevated) text-(--color-text-secondary) hover:text-(--color-text-primary)'
               }`}
             >
               {role === 'all' ? 'All Users' : `${role}s`}
@@ -99,38 +99,38 @@ export default function AdminUsersPage() {
           onSubmit={(e) => { e.preventDefault(); fetchUsers() }}
           className="relative flex-1 max-w-xs"
         >
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-(--color-text-muted)" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search users..."
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-2 text-sm text-white placeholder:text-gray-500 focus:border-violet-500 outline-none"
+            className="w-full bg-(--color-elevated) border border-(--color-border) rounded-none pl-10 pr-4 py-2 text-sm text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--brand-primary) outline-none"
           />
         </form>
       </div>
 
       {/* Users table */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+      <div className="bg-(--color-surface) border border-(--color-border) rounded-none overflow-hidden">
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-6 w-6 animate-spin text-violet-500" />
+            <Loader2 className="h-6 w-6 animate-spin text-(--brand-primary)" />
           </div>
         ) : users.length === 0 ? (
           <div className="py-20 text-center">
             <Users className="h-10 w-10 text-gray-700 mx-auto mb-3" />
-            <p className="text-gray-500">No users found</p>
+            <p className="text-(--color-text-muted)">No users found</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-800/50">
+              <thead className="bg-(--color-elevated)">
                 <tr>
-                  <th className="text-left px-5 py-3 text-gray-400 font-medium">User</th>
-                  <th className="text-left px-5 py-3 text-gray-400 font-medium">Email</th>
-                  <th className="text-left px-5 py-3 text-gray-400 font-medium">Role</th>
-                  <th className="text-left px-5 py-3 text-gray-400 font-medium">Joined</th>
-                  <th className="text-right px-5 py-3 text-gray-400 font-medium">Actions</th>
+                  <th className="text-left px-5 py-3 text-(--color-text-secondary) font-medium">User</th>
+                  <th className="text-left px-5 py-3 text-(--color-text-secondary) font-medium">Email</th>
+                  <th className="text-left px-5 py-3 text-(--color-text-secondary) font-medium">Role</th>
+                  <th className="text-left px-5 py-3 text-(--color-text-secondary) font-medium">Joined</th>
+                  <th className="text-right px-5 py-3 text-(--color-text-secondary) font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-800">
@@ -140,29 +140,29 @@ export default function AdminUsersPage() {
                   const isActioning = actionLoading === user.id
 
                   return (
-                    <tr key={user.id} className="hover:bg-gray-800/30 transition-colors">
+                    <tr key={user.id} className="hover:bg-(--color-elevated) transition-colors">
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
                           {user.avatar_url ? (
                             <img src={user.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover" />
                           ) : (
-                            <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center">
-                              <User className="h-4 w-4 text-gray-600" />
+                            <div className="w-8 h-8 rounded-full bg-(--color-elevated) flex items-center justify-center">
+                              <User className="h-4 w-4 text-(--color-text-muted)" />
                             </div>
                           )}
-                          <span className="font-medium text-white">
+                          <span className="font-medium text-(--color-text-primary)">
                             {user.display_name || 'Anonymous'}
                           </span>
                         </div>
                       </td>
-                      <td className="px-5 py-4 text-gray-400">{user.email}</td>
+                      <td className="px-5 py-4 text-(--color-text-secondary)">{user.email}</td>
                       <td className="px-5 py-4">
                         <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-full ${config.bg} ${config.color}`}>
                           <Icon className="h-3 w-3" />
                           {user.role}
                         </span>
                       </td>
-                      <td className="px-5 py-4 text-gray-500 text-xs">
+                      <td className="px-5 py-4 text-(--color-text-muted) text-xs">
                         {new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </td>
                       <td className="px-5 py-4 text-right">
@@ -170,7 +170,7 @@ export default function AdminUsersPage() {
                           value={user.role}
                           onChange={(e) => handleRoleChange(user.id, e.target.value)}
                           disabled={isActioning}
-                          className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-xs text-white outline-none focus:border-violet-500 disabled:opacity-50"
+                          className="bg-(--color-elevated) border border-(--color-border) rounded-none px-3 py-1.5 text-xs text-(--color-text-primary) outline-none focus:border-(--brand-primary) disabled:opacity-50"
                         >
                           <option value="buyer">Buyer</option>
                           <option value="seller">Seller</option>

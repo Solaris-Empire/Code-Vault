@@ -42,55 +42,55 @@ export default function AdminOrdersPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Orders</h1>
         <div className="flex items-center gap-4 text-sm">
-          <span className="text-gray-400">
-            Total Revenue: <span className="text-white font-semibold">${(totalRevenue / 100).toFixed(2)}</span>
+          <span className="text-(--color-text-secondary)">
+            Total Revenue: <span className="text-(--color-text-primary) font-semibold">${(totalRevenue / 100).toFixed(2)}</span>
           </span>
-          <span className="text-gray-400">
-            Platform Fees: <span className="text-violet-400 font-semibold">${(totalFees / 100).toFixed(2)}</span>
+          <span className="text-(--color-text-secondary)">
+            Platform Fees: <span className="text-(--brand-primary) font-semibold">${(totalFees / 100).toFixed(2)}</span>
           </span>
         </div>
       </div>
 
-      <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+      <div className="bg-(--color-surface) border border-(--color-border) rounded-none overflow-hidden">
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-6 w-6 animate-spin text-violet-500" />
+            <Loader2 className="h-6 w-6 animate-spin text-(--brand-primary)" />
           </div>
         ) : orders.length === 0 ? (
           <div className="py-20 text-center">
             <ShoppingCart className="h-10 w-10 text-gray-700 mx-auto mb-3" />
-            <p className="text-gray-500">No orders yet</p>
+            <p className="text-(--color-text-muted)">No orders yet</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-800/50">
+              <thead className="bg-(--color-elevated)">
                 <tr>
-                  <th className="text-left px-5 py-3 text-gray-400 font-medium">Product</th>
-                  <th className="text-left px-5 py-3 text-gray-400 font-medium">Buyer</th>
-                  <th className="text-right px-5 py-3 text-gray-400 font-medium">Amount</th>
-                  <th className="text-right px-5 py-3 text-gray-400 font-medium">Platform Fee</th>
-                  <th className="text-right px-5 py-3 text-gray-400 font-medium">Seller Payout</th>
-                  <th className="text-left px-5 py-3 text-gray-400 font-medium">Status</th>
-                  <th className="text-left px-5 py-3 text-gray-400 font-medium">Date</th>
+                  <th className="text-left px-5 py-3 text-(--color-text-secondary) font-medium">Product</th>
+                  <th className="text-left px-5 py-3 text-(--color-text-secondary) font-medium">Buyer</th>
+                  <th className="text-right px-5 py-3 text-(--color-text-secondary) font-medium">Amount</th>
+                  <th className="text-right px-5 py-3 text-(--color-text-secondary) font-medium">Platform Fee</th>
+                  <th className="text-right px-5 py-3 text-(--color-text-secondary) font-medium">Seller Payout</th>
+                  <th className="text-left px-5 py-3 text-(--color-text-secondary) font-medium">Status</th>
+                  <th className="text-left px-5 py-3 text-(--color-text-secondary) font-medium">Date</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-800">
                 {orders.map((order) => (
-                  <tr key={order.id} className="hover:bg-gray-800/30 transition-colors">
-                    <td className="px-5 py-4 font-medium text-white">
+                  <tr key={order.id} className="hover:bg-(--color-elevated) transition-colors">
+                    <td className="px-5 py-4 font-medium text-(--color-text-primary)">
                       {order.product?.title || 'Unknown'}
                     </td>
                     <td className="px-5 py-4">
                       <div>
-                        <p className="text-white text-sm">{order.buyer?.display_name || 'Unknown'}</p>
-                        <p className="text-gray-500 text-xs">{order.buyer?.email || ''}</p>
+                        <p className="text-(--color-text-primary) text-sm">{order.buyer?.display_name || 'Unknown'}</p>
+                        <p className="text-(--color-text-muted) text-xs">{order.buyer?.email || ''}</p>
                       </div>
                     </td>
-                    <td className="px-5 py-4 text-right text-white font-medium">
+                    <td className="px-5 py-4 text-right text-(--color-text-primary) font-medium">
                       ${(order.amount_cents / 100).toFixed(2)}
                     </td>
-                    <td className="px-5 py-4 text-right text-violet-400">
+                    <td className="px-5 py-4 text-right text-(--brand-primary)">
                       ${(order.platform_fee_cents / 100).toFixed(2)}
                     </td>
                     <td className="px-5 py-4 text-right text-green-400">
@@ -105,7 +105,7 @@ export default function AdminOrdersPage() {
                         {order.status}
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-gray-500 text-xs">
+                    <td className="px-5 py-4 text-(--color-text-muted) text-xs">
                       {new Date(order.created_at).toLocaleDateString('en-US', {
                         month: 'short', day: 'numeric', year: 'numeric'
                       })}

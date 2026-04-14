@@ -82,7 +82,7 @@ export default function AdminProductsPage() {
   const statusConfig: Record<string, { icon: typeof CheckCircle; color: string; bg: string }> = {
     approved: { icon: CheckCircle, color: 'text-green-400', bg: 'bg-green-400/10' },
     pending: { icon: Clock, color: 'text-yellow-400', bg: 'bg-yellow-400/10' },
-    draft: { icon: AlertCircle, color: 'text-gray-400', bg: 'bg-gray-400/10' },
+    draft: { icon: AlertCircle, color: 'text-(--color-text-secondary)', bg: 'bg-gray-400/10' },
     rejected: { icon: XCircle, color: 'text-red-400', bg: 'bg-red-400/10' },
   }
 
@@ -107,10 +107,10 @@ export default function AdminProductsPage() {
             <button
               key={tab.value}
               onClick={() => setStatusFilter(tab.value)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-4 py-2 rounded-none text-sm font-medium transition-colors ${
                 statusFilter === tab.value
-                  ? 'bg-violet-600 text-white'
-                  : 'bg-gray-800 text-gray-400 hover:text-white'
+                  ? 'bg-(--brand-primary) text-white'
+                  : 'bg-(--color-elevated) text-(--color-text-secondary) hover:text-(--color-text-primary)'
               }`}
             >
               {tab.label}
@@ -123,39 +123,39 @@ export default function AdminProductsPage() {
           onSubmit={(e) => { e.preventDefault(); fetchProducts() }}
           className="relative flex-1 max-w-xs"
         >
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-(--color-text-muted)" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search products..."
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-2 text-sm text-white placeholder:text-gray-500 focus:border-violet-500 outline-none"
+            className="w-full bg-(--color-elevated) border border-(--color-border) rounded-none pl-10 pr-4 py-2 text-sm text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--brand-primary) outline-none"
           />
         </form>
       </div>
 
       {/* Products table */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+      <div className="bg-(--color-surface) border border-(--color-border) rounded-none overflow-hidden">
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-6 w-6 animate-spin text-violet-500" />
+            <Loader2 className="h-6 w-6 animate-spin text-(--brand-primary)" />
           </div>
         ) : products.length === 0 ? (
           <div className="py-20 text-center">
             <Package className="h-10 w-10 text-gray-700 mx-auto mb-3" />
-            <p className="text-gray-500">No products found</p>
+            <p className="text-(--color-text-muted)">No products found</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-800/50">
+              <thead className="bg-(--color-elevated)">
                 <tr>
-                  <th className="text-left px-5 py-3 text-gray-400 font-medium">Product</th>
-                  <th className="text-left px-5 py-3 text-gray-400 font-medium">Seller</th>
-                  <th className="text-left px-5 py-3 text-gray-400 font-medium">Category</th>
-                  <th className="text-left px-5 py-3 text-gray-400 font-medium">Status</th>
-                  <th className="text-right px-5 py-3 text-gray-400 font-medium">Price</th>
-                  <th className="text-right px-5 py-3 text-gray-400 font-medium">Actions</th>
+                  <th className="text-left px-5 py-3 text-(--color-text-secondary) font-medium">Product</th>
+                  <th className="text-left px-5 py-3 text-(--color-text-secondary) font-medium">Seller</th>
+                  <th className="text-left px-5 py-3 text-(--color-text-secondary) font-medium">Category</th>
+                  <th className="text-left px-5 py-3 text-(--color-text-secondary) font-medium">Status</th>
+                  <th className="text-right px-5 py-3 text-(--color-text-secondary) font-medium">Price</th>
+                  <th className="text-right px-5 py-3 text-(--color-text-secondary) font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-800">
@@ -165,23 +165,23 @@ export default function AdminProductsPage() {
                   const isActioning = actionLoading === product.id
 
                   return (
-                    <tr key={product.id} className="hover:bg-gray-800/30 transition-colors">
+                    <tr key={product.id} className="hover:bg-(--color-elevated) transition-colors">
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
                           {product.thumbnail_url ? (
                             <img src={product.thumbnail_url} alt="" className="w-10 h-10 rounded object-cover" />
                           ) : (
-                            <div className="w-10 h-10 rounded bg-gray-800 flex items-center justify-center">
-                              <FileCode className="h-5 w-5 text-gray-600" />
+                            <div className="w-10 h-10 rounded bg-(--color-elevated) flex items-center justify-center">
+                              <FileCode className="h-5 w-5 text-(--color-text-muted)" />
                             </div>
                           )}
-                          <span className="font-medium text-white line-clamp-1">{product.title}</span>
+                          <span className="font-medium text-(--color-text-primary) line-clamp-1">{product.title}</span>
                         </div>
                       </td>
-                      <td className="px-5 py-4 text-gray-400">
+                      <td className="px-5 py-4 text-(--color-text-secondary)">
                         {product.seller?.display_name || 'Unknown'}
                       </td>
-                      <td className="px-5 py-4 text-gray-400">
+                      <td className="px-5 py-4 text-(--color-text-secondary)">
                         {product.category?.name || '-'}
                       </td>
                       <td className="px-5 py-4">
@@ -190,7 +190,7 @@ export default function AdminProductsPage() {
                           {product.status.charAt(0).toUpperCase() + product.status.slice(1)}
                         </span>
                       </td>
-                      <td className="px-5 py-4 text-right text-gray-300">
+                      <td className="px-5 py-4 text-right text-(--color-text-secondary)">
                         ${(product.price_cents / 100).toFixed(2)}
                       </td>
                       <td className="px-5 py-4 text-right">
@@ -198,7 +198,7 @@ export default function AdminProductsPage() {
                           <Link
                             href={`/products/${product.slug}`}
                             target="_blank"
-                            className="p-1.5 text-gray-500 hover:text-white transition-colors"
+                            className="p-1.5 text-(--color-text-muted) hover:text-(--color-text-primary) transition-colors"
                             title="Preview"
                           >
                             <Eye className="h-4 w-4" />
@@ -209,14 +209,14 @@ export default function AdminProductsPage() {
                               <button
                                 onClick={() => handleStatusChange(product.id, 'approved')}
                                 disabled={isActioning}
-                                className="px-3 py-1.5 text-xs font-medium rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors disabled:opacity-50"
+                                className="px-3 py-1.5 text-xs font-medium rounded-none bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors disabled:opacity-50"
                               >
                                 {isActioning ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Approve'}
                               </button>
                               <button
                                 onClick={() => handleStatusChange(product.id, 'rejected')}
                                 disabled={isActioning}
-                                className="px-3 py-1.5 text-xs font-medium rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-50"
+                                className="px-3 py-1.5 text-xs font-medium rounded-none bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-50"
                               >
                                 Reject
                               </button>
@@ -227,7 +227,7 @@ export default function AdminProductsPage() {
                             <button
                               onClick={() => handleStatusChange(product.id, 'approved')}
                               disabled={isActioning}
-                              className="px-3 py-1.5 text-xs font-medium rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors disabled:opacity-50"
+                              className="px-3 py-1.5 text-xs font-medium rounded-none bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors disabled:opacity-50"
                             >
                               Approve
                             </button>

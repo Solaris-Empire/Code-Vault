@@ -6,6 +6,7 @@ import {
   Package,
   Users,
   ShoppingCart,
+  Dna,
 } from 'lucide-react'
 import { createClient, getSupabaseAdmin } from '@/lib/supabase/server'
 
@@ -36,18 +37,19 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     { href: '/admin/products', label: 'Products', icon: Package },
     { href: '/admin/users', label: 'Users', icon: Users },
     { href: '/admin/orders', label: 'Orders', icon: ShoppingCart },
+    { href: '/admin/hunt', label: 'Theft Hunt', icon: Dna },
   ]
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white flex">
+    <div className="min-h-screen bg-(--color-background) text-(--color-text-primary) flex">
       {/* Sidebar */}
-      <aside className="w-64 border-r border-gray-800 bg-gray-950 flex-shrink-0 sticky top-0 h-screen">
+      <aside className="w-64 border-r border-(--color-border) bg-(--color-background) flex-shrink-0 sticky top-0 h-screen">
         <div className="p-6">
           <Link href="/" className="flex items-center gap-2 mb-1">
-            <Code2 className="h-6 w-6 text-violet-500" />
+            <Code2 className="h-6 w-6 text-(--brand-primary)" />
             <span className="text-lg font-bold">CodeVault</span>
           </Link>
-          <span className="text-xs text-gray-600 font-medium">Admin Panel</span>
+          <span className="text-xs text-(--color-text-muted) font-medium">Admin Panel</span>
         </div>
 
         <nav className="px-3 space-y-1">
@@ -55,7 +57,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <Link
               key={item.href}
               href={item.href}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-none text-sm text-(--color-text-secondary) hover:text-(--color-text-primary) hover:bg-(--color-elevated) transition-colors"
             >
               <item.icon className="h-4 w-4" />
               {item.label}
@@ -66,7 +68,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <div className="absolute bottom-6 left-3 right-3">
           <Link
             href="/"
-            className="block text-center text-xs text-gray-600 hover:text-gray-400 transition-colors py-2"
+            className="block text-center text-xs text-(--color-text-muted) hover:text-(--color-text-secondary) transition-colors py-2"
           >
             Back to Store
           </Link>

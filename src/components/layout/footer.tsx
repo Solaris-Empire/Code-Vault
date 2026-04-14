@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Code2, Shield, Zap, Heart } from "lucide-react";
+import { Code2, Shield, Zap, Heart, ShieldCheck, RotateCcw, Lock, BadgeCheck } from "lucide-react";
 
 const columns = [
   {
@@ -34,6 +34,7 @@ const columns = [
   {
     title: "Support",
     links: [
+      { label: "How we verify", href: "/verify" },
       { label: "Help Center", href: "/support" },
       { label: "FAQ", href: "/faq" },
       { label: "License Terms", href: "/terms" },
@@ -43,9 +44,44 @@ const columns = [
   },
 ] as const;
 
+const TRUST_BADGES = [
+  { icon: BadgeCheck, label: "Code-verified", sub: "Every upload statically analyzed", href: "/verify" },
+  { icon: RotateCcw, label: "7-day money back", sub: "No-questions refund window", href: "/returns" },
+  { icon: Lock, label: "Stripe-secured", sub: "PCI-compliant checkout", href: null },
+  { icon: ShieldCheck, label: "Ownership checked", sub: "Stolen code gets blocked", href: "/verify" },
+] as const;
+
 export function Footer() {
   return (
     <footer className="bg-(--brand-dark) text-white/80">
+      {/* Trust strip — sits above main footer content */}
+      <div className="border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-2 lg:grid-cols-4 gap-6">
+          {TRUST_BADGES.map(({ icon: Icon, label, sub, href }) => {
+            const inner = (
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                  <Icon className="h-5 w-5 text-(--brand-amber)" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-white truncate">{label}</p>
+                  <p className="text-[11px] text-white/50 truncate">{sub}</p>
+                </div>
+              </div>
+            );
+            return href ? (
+              <Link key={label} href={href} prefetch={false} className="hover:bg-white/5 -m-2 p-2 transition-colors">
+                {inner}
+              </Link>
+            ) : (
+              <div key={label} className="-m-2 p-2">
+                {inner}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20">
         {/* Top — logo + columns */}
         <div className="grid grid-cols-2 lg:grid-cols-6 gap-8 lg:gap-12">
@@ -93,9 +129,10 @@ export function Footer() {
               </h4>
               <ul className="space-y-2.5">
                 {col.links.map((link) => (
-                  <li key={link.href}>
+                  <li key={`${col.title}-${link.label}`}>
                     <Link
                       href={link.href}
+                      prefetch={false}
                       className="text-sm text-white/50 hover:text-white transition-colors"
                     >
                       {link.label}

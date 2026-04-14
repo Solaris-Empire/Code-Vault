@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -41,7 +42,12 @@ const passwordRequirements = [
   { regex: /[0-9]/, label: 'One number' },
 ]
 
-export default function RegisterPage() {
+function RegisterPageContent() {
+  const searchParams = useSearchParams()
+  const roleParam = searchParams.get('role')
+  const role: 'buyer' | 'seller' = roleParam === 'seller' ? 'seller' : 'buyer'
+  const isSeller = role === 'seller'
+
   const { signUp } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -56,7 +62,16 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterForm) => {
     try {
       setError(null)
-      await signUp(data.email, data.password, data.displayName)
+      await signUp(data.email, data.password, data.displayName, role)
+      // Best-effort: persist role to public.users. If session isn't live yet
+      // (email-confirmation flows), the auth callback will sync it from metadata.
+      try {
+        await fetch('/api/user/role', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ role }),
+        })
+      } catch {}
       setSuccess(true)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to create account')
@@ -72,7 +87,7 @@ export default function RegisterPage() {
               <CheckCircle2 className="h-10 w-10 text-green-600" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight">Check your email</h2>
-            <p className="text-gray-400 mb-8">We&apos;ve sent a confirmation link. Please check your email to verify your account.</p>
+            <p className="text-(--color-text-secondary) mb-8">We&apos;ve sent a confirmation link. Please check your email to verify your account.</p>
             <Button asChild className="w-full h-12 btn-primary rounded-none border-0">
               <Link href="/login">Back to Sign In <ArrowRight className="ml-2 h-5 w-5" /></Link>
             </Button>
@@ -120,8 +135,20 @@ export default function RegisterPage() {
           </div>
 
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">Create an account</h1>
-            <p className="text-gray-400">Join the marketplace for developers</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">
+              {isSeller ? 'Become a Seller' : 'Create an account'}
+            </h1>
+            <p className="text-(--color-text-secondary)">
+              {isSeller
+                ? 'Start earning 85% on every sale of your code'
+                : 'Join the marketplace for developers'}
+            </p>
+            {isSeller && (
+              <div className="inline-flex items-center gap-2 mt-4 px-3 py-1.5 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-semibold uppercase tracking-wide">
+                <Zap className="h-3.5 w-3.5" />
+                Joining as Seller
+              </div>
+            )}
           </div>
 
           <Card className="border-gray-200 bg-white shadow-sm">
@@ -132,9 +159,9 @@ export default function RegisterPage() {
                 <div className="space-y-2">
                   <Label htmlFor="displayName" className="text-gray-700">Display Name</Label>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-(--color-text-secondary)" />
                     <Input id="displayName" type="text" placeholder="Your name"
-                      className="pl-10 h-12 bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-green-400 focus:ring-green-200 rounded-none"
+                      className="pl-10 h-12 bg-gray-50 border-gray-200 text-gray-900 placeholder:text-(--color-text-secondary) focus:border-green-400 focus:ring-green-200 rounded-none"
                       {...register('displayName')} />
                   </div>
                   {errors.displayName && <p className="text-sm text-red-500">{errors.displayName.message}</p>}
@@ -143,9 +170,9 @@ export default function RegisterPage() {
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-gray-700">Email</Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-(--color-text-secondary)" />
                     <Input id="email" type="email" placeholder="you@example.com"
-                      className="pl-10 h-12 bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-green-400 focus:ring-green-200 rounded-none"
+                      className="pl-10 h-12 bg-gray-50 border-gray-200 text-gray-900 placeholder:text-(--color-text-secondary) focus:border-green-400 focus:ring-green-200 rounded-none"
                       {...register('email')} />
                   </div>
                   {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
@@ -154,11 +181,11 @@ export default function RegisterPage() {
                 <div className="space-y-2">
                   <Label htmlFor="password" className="text-gray-700">Password</Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-(--color-text-secondary)" />
                     <Input id="password" type={showPassword ? 'text' : 'password'} placeholder="Create a password"
-                      className="pl-10 pr-10 h-12 bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-green-400 focus:ring-green-200 rounded-none"
+                      className="pl-10 pr-10 h-12 bg-gray-50 border-gray-200 text-gray-900 placeholder:text-(--color-text-secondary) focus:border-green-400 focus:ring-green-200 rounded-none"
                       {...register('password')} />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-(--color-text-secondary) hover:text-(--color-text-muted)">
                       {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                     </button>
                   </div>
@@ -167,7 +194,7 @@ export default function RegisterPage() {
                       {passwordRequirements.map((req, index) => {
                         const isValid = req.regex.test(password)
                         return (
-                          <div key={index} className={`flex items-center gap-1.5 text-xs ${isValid ? 'text-green-600' : 'text-gray-400'}`}>
+                          <div key={index} className={`flex items-center gap-1.5 text-xs ${isValid ? 'text-green-600' : 'text-(--color-text-secondary)'}`}>
                             {isValid ? <Check className="h-3.5 w-3.5" /> : <X className="h-3.5 w-3.5" />}
                             {req.label}
                           </div>
@@ -181,9 +208,9 @@ export default function RegisterPage() {
                 <div className="space-y-2">
                   <Label htmlFor="confirmPassword" className="text-gray-700">Confirm Password</Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-(--color-text-secondary)" />
                     <Input id="confirmPassword" type="password" placeholder="Confirm your password"
-                      className="pl-10 h-12 bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-green-400 focus:ring-green-200 rounded-none"
+                      className="pl-10 h-12 bg-gray-50 border-gray-200 text-gray-900 placeholder:text-(--color-text-secondary) focus:border-green-400 focus:ring-green-200 rounded-none"
                       {...register('confirmPassword')} />
                   </div>
                   {errors.confirmPassword && <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>}
@@ -197,7 +224,7 @@ export default function RegisterPage() {
               <SocialLoginButtons />
 
               <div className="mt-6 text-center">
-                <span className="text-gray-400">Already have an account? </span>
+                <span className="text-(--color-text-secondary)">Already have an account? </span>
                 <Link href="/login" className="text-green-600 hover:text-green-700 font-semibold">Sign in</Link>
               </div>
             </CardContent>
@@ -205,5 +232,13 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-white"><Loader2 className="h-6 w-6 animate-spin text-green-600" /></div>}>
+      <RegisterPageContent />
+    </Suspense>
   )
 }

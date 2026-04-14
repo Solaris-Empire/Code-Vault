@@ -208,6 +208,7 @@ export function HeroSection() {
               </Link>
               <Link
                 href={slide.ctaSecondary.href}
+                prefetch={false}
                 className={cn(
                   "inline-flex items-center justify-center",
                   "bg-(--color-surface)/10 backdrop-blur-sm border border-white/25 text-white",

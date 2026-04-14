@@ -40,15 +40,15 @@ export default function ForgotPasswordPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-teal-50 px-4">
         <div className="max-w-md w-full">
-          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+          <div className="bg-white rounded-none shadow-xl p-8 text-center">
             <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle className="h-8 w-8 text-emerald-600" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Check your email</h1>
-            <p className="text-gray-600 mb-6">
+            <p className="text-(--color-text-muted) mb-6">
               If an account exists with that email, you'll receive a password reset link.
             </p>
-            <p className="text-sm text-gray-500 mb-6">
+            <p className="text-sm text-(--color-text-muted) mb-6">
               Didn't receive the email? Check your spam folder or{' '}
               <button
                 onClick={() => setIsSuccess(false)}
@@ -73,21 +73,21 @@ export default function ForgotPasswordPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-teal-50 px-4">
       <div className="max-w-md w-full">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white rounded-none shadow-xl p-8">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Mail className="h-8 w-8 text-emerald-600" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900">Forgot your password?</h1>
-            <p className="text-gray-600 mt-2">
+            <p className="text-(--color-text-muted) mt-2">
               No worries! Enter your email and we'll send you a reset link.
             </p>
           </div>
 
           {/* Error */}
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-none text-red-600 text-sm">
               {error}
             </div>
           )}
@@ -105,14 +105,14 @@ export default function ForgotPasswordPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="Enter your email"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                className="w-full px-4 py-3 border border-gray-300 rounded-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
               />
             </div>
 
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-emerald-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              className="w-full bg-emerald-600 text-white py-3 px-4 rounded-none font-medium hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
             >
               {isLoading ? (
                 <>
@@ -129,7 +129,7 @@ export default function ForgotPasswordPage() {
           <div className="mt-6 text-center">
             <Link
               href="/login"
-              className="inline-flex items-center gap-2 text-gray-600 hover:text-emerald-600 transition-colors"
+              className="inline-flex items-center gap-2 text-(--color-text-muted) hover:text-emerald-600 transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
               Back to login

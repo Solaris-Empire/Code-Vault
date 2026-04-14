@@ -10,6 +10,9 @@ import {
   Package,
 } from 'lucide-react'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
+import { SellerTierBadge } from '@/components/seller/seller-tier-badge'
+import { SellerRankBadge, type SellerRankKey } from '@/components/seller/seller-rank-badge'
+import type { SellerTier } from '@/lib/seller/tier'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -32,7 +35,7 @@ interface ProductRow {
   is_featured: boolean
   tags: string[] | null
   created_at: string
-  seller: { display_name: string } | null
+  seller: { display_name: string; seller_tier: SellerTier | null; seller_rank_key: SellerRankKey | null } | null
   category: { name: string; slug: string } | null
 }
 
@@ -92,7 +95,7 @@ export default async function ProductsPage({
     .select(
       `id, title, slug, short_description, price_cents, thumbnail_url,
        download_count, avg_rating, review_count, is_featured, tags, created_at,
-       seller:users!products_seller_id_fkey(display_name),
+       seller:users!products_seller_id_fkey(display_name, seller_tier, seller_rank_key),
        category:categories!products_category_id_fkey(name, slug)`
     )
     .eq('status', 'approved')
@@ -137,10 +140,10 @@ export default async function ProductsPage({
           </Link>
           <div className="hidden md:flex items-center gap-1">
             <Link href="/products" className="text-green-700 bg-green-50 px-3.5 py-2 rounded-none text-sm font-medium">Browse</Link>
-            <Link href="/categories" className="text-gray-600 hover:text-green-700 hover:bg-green-50 px-3.5 py-2 rounded-none text-sm font-medium transition-all">Categories</Link>
+            <Link href="/categories" className="text-(--color-text-muted) hover:text-green-700 hover:bg-green-50 px-3.5 py-2 rounded-none text-sm font-medium transition-all">Categories</Link>
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/login" className="text-gray-600 hover:text-gray-900 transition-colors text-sm">Sign In</Link>
+            <Link href="/login" className="text-(--color-text-muted) hover:text-gray-900 transition-colors text-sm">Sign In</Link>
             <Link href="/register" className="btn-primary text-white px-5 py-2 rounded-none text-sm font-medium">Get Started</Link>
           </div>
         </div>
@@ -155,7 +158,7 @@ export default async function ProductsPage({
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">
             {featuredOnly ? 'Featured Items' : activeCategory ? activeCategory.name : 'Browse Marketplace'}
           </h1>
-          <p className="text-gray-400">
+          <p className="text-(--color-text-secondary)">
             {featuredOnly ? 'Hand-picked premium code by our team' : activeCategory ? `Explore ${activeCategory.name} scripts, templates & tools` : 'Discover premium scripts, templates, themes & plugins'}
           </p>
 
@@ -164,7 +167,7 @@ export default async function ProductsPage({
             {sortValue !== 'newest' && <input type="hidden" name="sort" value={sortValue} />}
             {featuredOnly && <input type="hidden" name="featured" value="true" />}
             <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-(--color-text-secondary)" />
               <input
                 type="text"
                 name="search"
@@ -184,7 +187,7 @@ export default async function ProductsPage({
           {/* Sidebar */}
           <aside className="lg:w-64 flex-shrink-0">
             <div className="mb-6">
-              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-(--color-text-secondary) uppercase tracking-wider mb-3 flex items-center gap-2">
                 <ArrowUpDown className="h-4 w-4" /> Sort By
               </h3>
               <div className="flex flex-wrap lg:flex-col gap-2">
@@ -195,7 +198,7 @@ export default async function ProductsPage({
                     className={`text-sm px-3.5 py-2 rounded-none transition-all ${
                       sortValue === option.value
                         ? 'bg-green-600 text-white'
-                        : 'bg-white border border-gray-200 text-gray-600 hover:text-green-700 hover:border-green-200 hover:bg-green-50'
+                        : 'bg-white border border-gray-200 text-(--color-text-muted) hover:text-green-700 hover:border-green-200 hover:bg-green-50'
                     }`}
                   >
                     {option.label}
@@ -205,14 +208,14 @@ export default async function ProductsPage({
             </div>
 
             <div className="mb-6">
-              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-(--color-text-secondary) uppercase tracking-wider mb-3 flex items-center gap-2">
                 <SlidersHorizontal className="h-4 w-4" /> Categories
               </h3>
               <div className="flex flex-wrap lg:flex-col gap-2">
                 <Link
                   href={buildUrl({ category: undefined })}
                   className={`text-sm px-3.5 py-2 rounded-none transition-all ${
-                    !categorySlug ? 'bg-green-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:text-green-700 hover:border-green-200 hover:bg-green-50'
+                    !categorySlug ? 'bg-green-600 text-white' : 'bg-white border border-gray-200 text-(--color-text-muted) hover:text-green-700 hover:border-green-200 hover:bg-green-50'
                   }`}
                 >
                   All Categories
@@ -222,7 +225,7 @@ export default async function ProductsPage({
                     key={cat.id}
                     href={buildUrl({ category: cat.slug })}
                     className={`text-sm px-3.5 py-2 rounded-none transition-all flex items-center gap-2 ${
-                      categorySlug === cat.slug ? 'bg-green-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:text-green-700 hover:border-green-200 hover:bg-green-50'
+                      categorySlug === cat.slug ? 'bg-green-600 text-white' : 'bg-white border border-gray-200 text-(--color-text-muted) hover:text-green-700 hover:border-green-200 hover:bg-green-50'
                     }`}
                   >
                     {cat.icon && <span>{cat.icon}</span>}
@@ -233,13 +236,13 @@ export default async function ProductsPage({
             </div>
 
             <div>
-              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-(--color-text-secondary) uppercase tracking-wider mb-3 flex items-center gap-2">
                 <Sparkles className="h-4 w-4" /> Quick Filters
               </h3>
               <Link
                 href={buildUrl({ featured: featuredOnly ? undefined : 'true' })}
                 className={`text-sm px-3.5 py-2 rounded-none transition-all inline-flex items-center gap-2 ${
-                  featuredOnly ? 'bg-green-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:text-green-700 hover:border-green-200 hover:bg-green-50'
+                  featuredOnly ? 'bg-green-600 text-white' : 'bg-white border border-gray-200 text-(--color-text-muted) hover:text-green-700 hover:border-green-200 hover:bg-green-50'
                 }`}
               >
                 <Sparkles className="h-3.5 w-3.5" /> Featured Only
@@ -250,7 +253,7 @@ export default async function ProductsPage({
           {/* Product Grid */}
           <main className="flex-1">
             <div className="flex items-center justify-between mb-6">
-              <p className="text-gray-400 text-sm">
+              <p className="text-(--color-text-secondary) text-sm">
                 <span className="text-gray-900 font-medium">{safeProducts.length}</span>{' '}
                 product{safeProducts.length !== 1 ? 's' : ''} found
                 {searchQuery && <span> for &quot;<span className="text-green-600">{searchQuery}</span>&quot;</span>}
@@ -260,10 +263,10 @@ export default async function ProductsPage({
             {safeProducts.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <div className="w-20 h-20 rounded-none bg-green-50 flex items-center justify-center mb-5">
-                  <Package className="h-10 w-10 text-gray-300" />
+                  <Package className="h-10 w-10 text-(--color-text-secondary)" />
                 </div>
                 <h2 className="text-xl font-semibold mb-2 text-gray-900">No products found</h2>
-                <p className="text-gray-400 max-w-md mb-6">
+                <p className="text-(--color-text-secondary) max-w-md mb-6">
                   {searchQuery
                     ? `We couldn't find any products matching "${searchQuery}". Try adjusting your search or filters.`
                     : 'No products match your current filters. Try selecting a different category or removing filters.'}
@@ -280,7 +283,7 @@ export default async function ProductsPage({
                       {product.thumbnail_url ? (
                         <img src={product.thumbnail_url} alt={product.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center"><Code2 className="h-10 w-10 text-gray-300" /></div>
+                        <div className="w-full h-full flex items-center justify-center"><Code2 className="h-10 w-10 text-(--color-text-secondary)" /></div>
                       )}
                       {product.is_featured && (
                         <div className="absolute top-3 left-3 bg-green-600 text-white text-xs font-medium px-2.5 py-1 rounded-none flex items-center gap-1">
@@ -290,13 +293,19 @@ export default async function ProductsPage({
                     </div>
                     <div className="p-4">
                       <h3 className="font-semibold text-gray-900 group-hover:text-green-700 transition-colors line-clamp-1">{product.title}</h3>
-                      <p className="text-gray-400 text-sm mt-1 line-clamp-1">by {product.seller?.display_name || 'Unknown Seller'}</p>
+                      <div className="flex items-center gap-1.5 flex-wrap mt-1">
+                        <p className="text-(--color-text-secondary) text-sm line-clamp-1">by {product.seller?.display_name || 'Unknown Seller'}</p>
+                        <SellerRankBadge rankKey={product.seller?.seller_rank_key} size="inline" />
+                        {product.seller?.seller_tier && product.seller.seller_tier !== 'unverified' && (
+                          <SellerTierBadge tier={product.seller.seller_tier} size="avatar" />
+                        )}
+                      </div>
                       {product.category && (
-                        <span className="inline-block mt-2 text-xs bg-gray-100 text-gray-500 px-2.5 py-0.5 rounded-none">{product.category.name}</span>
+                        <span className="inline-block mt-2 text-xs bg-gray-100 text-(--color-text-muted) px-2.5 py-0.5 rounded-none">{product.category.name}</span>
                       )}
                       <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
                         <span className="text-lg font-bold text-green-600">${(product.price_cents / 100).toFixed(2)}</span>
-                        <div className="flex items-center gap-3 text-sm text-gray-400">
+                        <div className="flex items-center gap-3 text-sm text-(--color-text-secondary)">
                           <span className="flex items-center gap-1"><Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />{product.avg_rating?.toFixed(1) || '0.0'}</span>
                           <span className="flex items-center gap-1"><Download className="h-3.5 w-3.5" />{product.download_count.toLocaleString()}</span>
                         </div>
@@ -311,7 +320,7 @@ export default async function ProductsPage({
       </div>
 
       <footer className="border-t border-gray-100 mt-16">
-        <div className="container mx-auto px-4 py-8 text-center text-gray-400 text-sm">
+        <div className="container mx-auto px-4 py-8 text-center text-(--color-text-secondary) text-sm">
           &copy; {new Date().getFullYear()} CodeVault by Solaris Empire Inc. All rights reserved.
         </div>
       </footer>

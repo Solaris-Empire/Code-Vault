@@ -24,7 +24,7 @@ export function MobileBottomNav() {
   if (pathname.startsWith('/admin') || pathname.startsWith('/seller')) return null
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-gray-950 border-t border-gray-800 lg:hidden safe-area-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-(--color-background) border-t border-(--color-border) lg:hidden safe-area-bottom">
       <div className="flex items-center justify-around h-14">
         {tabs.map((tab) => {
           const active = isActive(tab)
@@ -34,7 +34,7 @@ export function MobileBottomNav() {
               href={tab.href}
               className={cn(
                 'flex flex-col items-center justify-center flex-1 h-full gap-0.5 transition-colors',
-                active ? 'text-violet-400' : 'text-gray-500'
+                active ? 'text-(--brand-primary)' : 'text-(--color-text-muted)'
               )}
             >
               <tab.icon className="h-5 w-5" strokeWidth={active ? 2.5 : 1.5} />

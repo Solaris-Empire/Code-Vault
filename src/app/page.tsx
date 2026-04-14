@@ -18,6 +18,8 @@ import { NewsletterSignup } from "@/components/sections/NewsletterSignup";
 
 export const revalidate = 60;
 
+import type { SellerTier } from "@/lib/seller/tier";
+
 type ProductRow = {
   id: string;
   title: string;
@@ -29,7 +31,7 @@ type ProductRow = {
   download_count: number | null;
   is_featured: boolean | null;
   created_at: string | null;
-  seller: { display_name: string | null } | null;
+  seller: { display_name: string | null; seller_tier: SellerTier | null } | null;
   category: { name: string | null; slug: string | null } | null;
 };
 
@@ -41,6 +43,7 @@ function toShowcaseProduct(p: ProductRow): ShowcaseProduct {
     thumbnailUrl: p.thumbnail_url,
     priceCents: p.price_cents,
     seller: p.seller?.display_name ?? null,
+    sellerTier: p.seller?.seller_tier ?? null,
     category: p.category?.name ?? null,
     rating: p.avg_rating ?? undefined,
     downloadCount: p.download_count ?? undefined,
@@ -56,6 +59,8 @@ function toBestSeller(p: ProductRow): BestSellerProduct {
     thumbnailUrl: p.thumbnail_url,
     priceCents: p.price_cents,
     category: p.category?.name ?? null,
+    seller: p.seller?.display_name ?? null,
+    sellerTier: p.seller?.seller_tier ?? null,
     rating: p.avg_rating ?? undefined,
     reviewCount: p.review_count ?? undefined,
     downloadCount: p.download_count ?? undefined,
@@ -96,7 +101,7 @@ export default async function HomePage() {
   const productSelect = `
     id, title, slug, thumbnail_url, price_cents, avg_rating, review_count,
     download_count, is_featured, created_at,
-    seller:users!products_seller_id_fkey(display_name),
+    seller:users!products_seller_id_fkey(display_name, seller_tier),
     category:categories(name, slug)
   `;
 

@@ -42,16 +42,16 @@ export default async function PurchasesPage() {
   const safeOrders = orders || []
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
+    <div className="min-h-screen bg-(--color-background) text-(--color-text-primary)">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <Link href="/" className="text-gray-400 hover:text-white transition-colors">
+          <Link href="/" className="text-(--color-text-secondary) hover:text-(--color-text-primary) transition-colors">
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
             <h1 className="text-2xl font-bold">My Purchases</h1>
-            <p className="text-gray-400 text-sm mt-1">
+            <p className="text-(--color-text-secondary) text-sm mt-1">
               {safeOrders.length} product{safeOrders.length !== 1 ? 's' : ''} purchased
             </p>
           </div>
@@ -61,10 +61,10 @@ export default async function PurchasesPage() {
           <div className="text-center py-20">
             <Package className="h-12 w-12 text-gray-700 mx-auto mb-4" />
             <h2 className="text-xl font-semibold mb-2">No purchases yet</h2>
-            <p className="text-gray-500 mb-6">Browse our marketplace to find your next project.</p>
+            <p className="text-(--color-text-muted) mb-6">Browse our marketplace to find your next project.</p>
             <Link
               href="/products"
-              className="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors"
+              className="inline-flex items-center gap-2 bg-(--brand-primary) hover:opacity-90 text-white px-6 py-2.5 rounded-none font-medium transition-colors"
             >
               Browse Products
             </Link>
@@ -80,7 +80,7 @@ export default async function PurchasesPage() {
               return (
                 <div
                   key={order.id}
-                  className="bg-gray-900 border border-gray-800 rounded-xl p-6"
+                  className="bg-(--color-surface) border border-(--color-border) rounded-none p-6"
                 >
                   <div className="flex items-start gap-4">
                     {/* Thumbnail */}
@@ -88,11 +88,11 @@ export default async function PurchasesPage() {
                       <img
                         src={product.thumbnail_url}
                         alt={product.title}
-                        className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+                        className="w-16 h-16 rounded-none object-cover flex-shrink-0"
                       />
                     ) : (
-                      <div className="w-16 h-16 rounded-lg bg-gray-800 flex items-center justify-center flex-shrink-0">
-                        <FileCode className="h-6 w-6 text-gray-600" />
+                      <div className="w-16 h-16 rounded-none bg-(--color-elevated) flex items-center justify-center flex-shrink-0">
+                        <FileCode className="h-6 w-6 text-(--color-text-muted)" />
                       </div>
                     )}
 
@@ -100,10 +100,10 @@ export default async function PurchasesPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-4">
                         <div>
-                          <h3 className="font-semibold text-white">
+                          <h3 className="font-semibold text-(--color-text-primary)">
                             {product?.title || 'Unknown Product'}
                           </h3>
-                          <p className="text-sm text-gray-400 mt-1">
+                          <p className="text-sm text-(--color-text-secondary) mt-1">
                             {license?.license_type === 'extended' ? 'Extended' : 'Regular'} License
                             &middot; ${(order.amount_cents / 100).toFixed(2)}
                             &middot; {new Date(order.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
@@ -115,7 +115,7 @@ export default async function PurchasesPage() {
                           {product && (
                             <Link
                               href={`/api/downloads/${product.id}`}
-                              className="inline-flex items-center gap-1.5 bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                              className="inline-flex items-center gap-1.5 bg-(--brand-primary) hover:opacity-90 text-white px-4 py-2 rounded-none text-sm font-medium transition-colors"
                             >
                               <Download className="h-4 w-4" />
                               Download
@@ -124,7 +124,7 @@ export default async function PurchasesPage() {
                           {product && (
                             <Link
                               href={`/products/${product.slug}`}
-                              className="p-2 text-gray-400 hover:text-white transition-colors"
+                              className="p-2 text-(--color-text-secondary) hover:text-(--color-text-primary) transition-colors"
                               title="View product"
                             >
                               <ExternalLink className="h-4 w-4" />
@@ -136,8 +136,8 @@ export default async function PurchasesPage() {
                       {/* License key */}
                       {license && (
                         <div className="mt-3 flex items-center gap-2">
-                          <Key className="h-3.5 w-3.5 text-gray-500" />
-                          <code className="text-xs font-mono text-gray-500 bg-gray-800 px-2 py-1 rounded">
+                          <Key className="h-3.5 w-3.5 text-(--color-text-muted)" />
+                          <code className="text-xs font-mono text-(--color-text-muted) bg-(--color-elevated) px-2 py-1 rounded">
                             {license.license_key}
                           </code>
                         </div>

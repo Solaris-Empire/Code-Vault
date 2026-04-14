@@ -55,7 +55,7 @@ function LoginFormContent() {
   const onSubmit = async (data: LoginForm) => {
     try {
       setError(null)
-      await signIn(data.email, data.password)
+      const session = await signIn(data.email, data.password)
 
       const redirectParam = searchParams.get('redirectTo')
       if (redirectParam && redirectParam.startsWith('/') && !redirectParam.startsWith('//')) {
@@ -63,16 +63,26 @@ function LoginFormContent() {
         return
       }
 
-      const res = await fetch('/api/user/profile')
-      if (res.ok) {
-        const result = await res.json()
-        const profile = result.data || result
-        if (profile.role === 'admin') window.location.href = '/admin'
-        else if (profile.role === 'seller') window.location.href = '/seller/dashboard'
-        else window.location.href = '/'
-      } else {
-        window.location.href = '/'
+      // Prefer role from user_metadata (available immediately, no cookie race).
+      const metaRole = session?.user?.user_metadata?.role as string | undefined
+      if (metaRole === 'admin') { window.location.href = '/admin'; return }
+      if (metaRole === 'seller') { window.location.href = '/seller/dashboard'; return }
+
+      // Fall back to profile fetch — retry once to beat the cookie-propagation race.
+      let profile: { role?: string } | null = null
+      for (let i = 0; i < 2; i++) {
+        const res = await fetch('/api/user/profile', { credentials: 'include', cache: 'no-store' })
+        if (res.ok) {
+          const result = await res.json()
+          profile = result.data || result
+          break
+        }
+        await new Promise((r) => setTimeout(r, 250))
       }
+
+      if (profile?.role === 'admin') window.location.href = '/admin'
+      else if (profile?.role === 'seller') window.location.href = '/seller/dashboard'
+      else window.location.href = '/'
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to sign in')
     }
@@ -92,7 +102,7 @@ function LoginFormContent() {
 
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">Welcome back</h1>
-            <p className="text-gray-400">Sign in to your account</p>
+            <p className="text-(--color-text-secondary)">Sign in to your account</p>
           </div>
 
           <Card className="border-gray-200 bg-white shadow-sm">
@@ -105,10 +115,10 @@ function LoginFormContent() {
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-gray-700">Email</Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-(--color-text-secondary)" />
                     <Input
                       id="email" type="email" placeholder="you@example.com"
-                      className="pl-10 h-12 bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-green-400 focus:ring-green-200 rounded-none"
+                      className="pl-10 h-12 bg-gray-50 border-gray-200 text-gray-900 placeholder:text-(--color-text-secondary) focus:border-green-400 focus:ring-green-200 rounded-none"
                       {...register('email')}
                     />
                   </div>
@@ -121,13 +131,13 @@ function LoginFormContent() {
                     <Link href="/forgot-password" className="text-sm text-green-600 hover:text-green-700">Forgot password?</Link>
                   </div>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-(--color-text-secondary)" />
                     <Input
                       id="password" type={showPassword ? 'text' : 'password'} placeholder="Enter your password"
-                      className="pl-10 pr-10 h-12 bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-green-400 focus:ring-green-200 rounded-none"
+                      className="pl-10 pr-10 h-12 bg-gray-50 border-gray-200 text-gray-900 placeholder:text-(--color-text-secondary) focus:border-green-400 focus:ring-green-200 rounded-none"
                       {...register('password')}
                     />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-(--color-text-secondary) hover:text-(--color-text-muted)">
                       {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                     </button>
                   </div>
@@ -142,7 +152,7 @@ function LoginFormContent() {
               <SocialLoginButtons />
 
               <div className="mt-6 text-center">
-                <span className="text-gray-400">Don&apos;t have an account? </span>
+                <span className="text-(--color-text-secondary)">Don&apos;t have an account? </span>
                 <Link href="/register" className="text-green-600 hover:text-green-700 font-semibold">Create one</Link>
               </div>
             </CardContent>

@@ -1,11 +1,10 @@
-import { Download, ShieldCheck, RotateCcw, MessageCircle } from "lucide-react";
+import { ScanLine, FileCode2, ShieldX, Banknote, Download, ShieldCheck, RotateCcw, MessageCircle } from "lucide-react";
+import { getSupabaseAdmin } from "@/lib/supabase/server";
 
-const STATS = [
-  { value: "10,000+", label: "Products" },
-  { value: "50,000+", label: "Developers" },
-  { value: "$5M+", label: "Paid to Sellers" },
-  { value: "4.9/5", label: "Rating" },
-] as const;
+// Real platform counters. No fake numbers — if the DB returns 0, we show 0.
+// Rendered from a server component; parent `page.tsx` has revalidate = 60.
+
+type Stat = { value: string; label: string; icon: React.ComponentType<{ className?: string }> };
 
 const TRUST = [
   { icon: Download, title: "Instant downloads" },
@@ -14,7 +13,9 @@ const TRUST = [
   { icon: MessageCircle, title: "24/7 author support" },
 ] as const;
 
-export function StatsBar() {
+export async function StatsBar() {
+  const stats = await loadStats();
+
   return (
     <section className="relative overflow-hidden">
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -26,9 +27,19 @@ export function StatsBar() {
       <div className="absolute inset-0 bg-(--brand-dark)/90 backdrop-blur-sm" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
+        <div className="text-center mb-10 lg:mb-14">
+          <p className="text-xs uppercase tracking-[0.2em] text-(--brand-amber) font-semibold mb-2">
+            Verified in real time
+          </p>
+          <h2 className="font-display text-2xl lg:text-3xl font-bold text-white">
+            Every number below is measured, not marketed
+          </h2>
+        </div>
+
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-0 lg:divide-x lg:divide-white/10">
-          {STATS.map((stat) => (
+          {stats.map((stat) => (
             <div key={stat.label} className="text-center lg:px-8">
+              <stat.icon className="h-6 w-6 text-(--brand-amber) mx-auto mb-3" />
               <p className="font-display text-4xl lg:text-5xl font-bold text-white tracking-tight">
                 {stat.value}
               </p>
@@ -54,4 +65,61 @@ export function StatsBar() {
       </div>
     </section>
   );
+}
+
+async function loadStats(): Promise<Stat[]> {
+  const supabase = getSupabaseAdmin();
+
+  const [scannedRes, locRes, stolenRes, paidRes] = await Promise.all([
+    supabase
+      .from("product_analyses")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "completed"),
+    supabase
+      .from("product_analyses")
+      .select("total_loc")
+      .eq("status", "completed"),
+    supabase
+      .from("product_ownership_checks")
+      .select("*", { count: "exact", head: true })
+      .eq("verdict", "stolen"),
+    supabase
+      .from("orders")
+      .select("seller_payout_cents")
+      .eq("status", "completed"),
+  ]);
+
+  const scannedCount = scannedRes.count ?? 0;
+  const totalLoc = (locRes.data ?? []).reduce(
+    (sum, row) => sum + (row.total_loc ?? 0),
+    0,
+  );
+  const stolenBlocked = stolenRes.count ?? 0;
+  const paidOutCents = (paidRes.data ?? []).reduce(
+    (sum, row) => sum + (row.seller_payout_cents ?? 0),
+    0,
+  );
+
+  return [
+    { value: formatCompact(scannedCount), label: "Products scanned", icon: ScanLine },
+    { value: formatCompact(totalLoc), label: "Lines analyzed", icon: FileCode2 },
+    { value: formatCompact(stolenBlocked), label: "Stolen code blocked", icon: ShieldX },
+    { value: formatMoney(paidOutCents), label: "Paid to sellers", icon: Banknote },
+  ];
+}
+
+// 1_234 → "1.2K", 12_345 → "12K", 1_200_000 → "1.2M". No fake padding.
+function formatCompact(n: number): string {
+  if (n < 1000) return n.toString();
+  if (n < 10_000) return (n / 1000).toFixed(1).replace(/\.0$/, "") + "K";
+  if (n < 1_000_000) return Math.floor(n / 1000) + "K";
+  if (n < 10_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
+  if (n < 1_000_000_000) return Math.floor(n / 1_000_000) + "M";
+  return (n / 1_000_000_000).toFixed(1).replace(/\.0$/, "") + "B";
+}
+
+function formatMoney(cents: number): string {
+  const dollars = cents / 100;
+  if (dollars < 1000) return "$" + dollars.toFixed(0);
+  return "$" + formatCompact(Math.floor(dollars));
 }

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ArrowRight, Download, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SellerTierBadge } from "@/components/seller/seller-tier-badge";
+import type { SellerTier } from "@/lib/seller/tier";
 
 export interface ShowcaseProduct {
   id: string;
@@ -10,6 +12,7 @@ export interface ShowcaseProduct {
   priceCents: number;
   compareAtPriceCents?: number | null;
   seller?: string | null;
+  sellerTier?: SellerTier | null;
   category?: string | null;
   rating?: number;
   downloadCount?: number;
@@ -94,7 +97,12 @@ function ProductCard({
           {product.title}
         </p>
         {product.seller && (
-          <p className="text-xs text-(--color-text-muted)">by {product.seller}</p>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <p className="text-xs text-(--color-text-muted)">by {product.seller}</p>
+            {product.sellerTier && product.sellerTier !== "unverified" && (
+              <SellerTierBadge tier={product.sellerTier} size="avatar" />
+            )}
+          </div>
         )}
         <div className="flex items-center justify-between pt-2 mt-auto border-t border-(--color-border)">
           <div className="flex items-baseline gap-1.5">

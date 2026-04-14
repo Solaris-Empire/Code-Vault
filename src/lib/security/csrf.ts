@@ -214,6 +214,10 @@ export const csrfExemptRoutes = [
   '/api/notifications', // Notification routes - protected by auth
   '/api/returns', // Return routes - protected by auth
   '/api/support', // Support routes - protected by auth
+  '/api/upload', // Upload routes - protected by auth + rate limiting; multipart/form-data makes header injection awkward
+  '/api/seller/', // Seller routes - protected by auth + role middleware
+  '/api/products/', // Product mutations - protected by auth + owner/admin role check
+  '/api/checkout', // Checkout routes - protected by auth; Stripe session creation
 ]
 
 /**

@@ -128,9 +128,23 @@ export async function POST(request: NextRequest) {
     .eq('id', product.seller_id)
     .single()
 
+  // Hard-block checkout if the seller hasn't finished Stripe Connect
+  // onboarding. Previously we silently fell through to a platform-only
+  // charge, which meant the platform kept 100% and the seller got nothing
+  // until they set up Connect — a silent revenue-misrouting bug.
+  if (!seller?.stripe_account_id || !seller.stripe_onboarding_complete) {
+    return NextResponse.json(
+      { error: { message: 'This seller is not yet set up to receive payments. Please try again later.' } },
+      { status: 400 },
+    )
+  }
+
   // Build the Stripe Checkout Session
   const stripe = getStripe()
-  const origin = request.headers.get('origin') || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  // Pin the redirect origin to our configured app URL — never trust the
+  // Origin header here, it's an open-redirect vector for the success_url
+  // which Stripe renders back to the buyer's browser.
+  const origin = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
   // Base session config — using Record to avoid strict type issues with Stripe SDK
   const sessionConfig: Record<string, unknown> = {
