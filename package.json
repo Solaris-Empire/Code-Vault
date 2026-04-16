@@ -55,6 +55,7 @@
     "react-dom": "19.2.3",
     "react-hook-form": "^7.71.1",
     "react-leaflet": "^5.0.0",
+    "resend": "^6.12.0",
     "sanitize-html": "^2.17.0",
     "sonner": "^2.0.7",
     "stripe": "^20.2.0",

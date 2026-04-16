@@ -10,6 +10,7 @@ import { requireAuth } from '@/lib/auth/verify'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
 import { isBetaEnabled } from '@/lib/feature-flags'
 import { checkRateLimit, rateLimitConfigs } from '@/lib/security/rate-limit'
+import { notifyNewJobApplication } from '@/lib/email/notify'
 
 export const dynamic = 'force-dynamic'
 
@@ -77,7 +78,7 @@ export async function POST(
     )
   }
 
-  const { error: insertErr } = await admin
+  const { data: appRow, error: insertErr } = await admin
     .from('job_applications')
     .insert({
       job_id: id,
@@ -87,6 +88,8 @@ export async function POST(
       resume_url: input.resumeUrl ?? null,
       expected_salary_cents: input.expectedSalaryCents ?? null,
     })
+    .select('id')
+    .single()
 
   if (insertErr) {
     // Duplicate-application check maps to a friendly message.
@@ -98,6 +101,12 @@ export async function POST(
     }
     console.error('[jobs-apply] insert failed:', insertErr)
     return NextResponse.json({ error: { message: 'Failed to submit application' } }, { status: 500 })
+  }
+
+  // Fire-and-forget employer notification. A mail outage must never
+  // fail the applicant's submit.
+  if (appRow?.id) {
+    notifyNewJobApplication(appRow.id).catch(() => {})
   }
 
   return NextResponse.json({ data: { ok: true } })

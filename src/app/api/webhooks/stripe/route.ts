@@ -6,6 +6,7 @@ import { createClient } from '@supabase/supabase-js'
 import { captureError } from '@/lib/error-tracking'
 import { recomputeSellerTier } from '@/lib/seller/tier'
 import { awardSellerXp, XP_REWARDS } from '@/lib/seller/rank'
+import { notifyOrderConfirmation, notifyNewSale } from '@/lib/email/notify'
 import crypto from 'crypto'
 
 const PLATFORM_FEE_PERCENT = 15
@@ -195,7 +196,7 @@ async function handleSuccessfulPurchase(session: Stripe.Checkout.Session) {
   }
 
   // Create order
-  const { error: orderError } = await supabase
+  const { data: orderRow, error: orderError } = await supabase
     .from('orders')
     .insert({
       buyer_id: metadata.buyerId,
@@ -207,14 +208,24 @@ async function handleSuccessfulPurchase(session: Stripe.Checkout.Session) {
       stripe_payment_id: session.payment_intent as string,
       status: 'completed',
     })
+    .select('id')
+    .single()
 
-  if (orderError) {
-    captureError(new Error(`Order creation failed: ${orderError.message}`), {
+  if (orderError || !orderRow) {
+    captureError(new Error(`Order creation failed: ${orderError?.message ?? 'unknown'}`), {
       context: 'webhook:stripe:order',
       extra: { sessionId: session.id },
     })
-    throw orderError
+    throw orderError ?? new Error('Order creation failed')
   }
+
+  // Fire-and-forget transactional emails. dedupeKey inside notify.ts
+  // handles Stripe webhook retries so the buyer never gets the same
+  // receipt twice.
+  Promise.all([
+    notifyOrderConfirmation(orderRow.id),
+    notifyNewSale(orderRow.id),
+  ]).catch(() => {})
 
   // Fire-and-forget tier recompute for the seller. A failure here must
   // never block the purchase from completing.
