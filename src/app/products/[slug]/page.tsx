@@ -19,6 +19,7 @@ import { SourceDNAPanel } from '@/components/product/source-dna-panel'
 import type { GithubMatchRow } from '@/lib/analysis/github-match'
 import { SellerTierBadge } from '@/components/seller/seller-tier-badge'
 import type { SellerTier } from '@/lib/seller/tier'
+import ReportButton from '@/components/report-button'
 
 export const revalidate = 60
 
@@ -393,6 +394,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 <Code2 size={14} /> {typedProduct.category.name}
               </Link>
             </div>
+
+            {viewer && viewer.id !== typedProduct.seller_id && (
+              <div className="card rounded-none p-6">
+                <ReportButton targetType="product" targetId={typedProduct.id} label="Report this listing" />
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -7,6 +7,7 @@ import {
   Users,
   ShoppingCart,
   Dna,
+  Flag,
 } from 'lucide-react'
 import { createClient, getSupabaseAdmin } from '@/lib/supabase/server'
 
@@ -37,6 +38,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     { href: '/admin/products', label: 'Products', icon: Package },
     { href: '/admin/users', label: 'Users', icon: Users },
     { href: '/admin/orders', label: 'Orders', icon: ShoppingCart },
+    { href: '/admin/reports', label: 'Reports', icon: Flag },
     { href: '/admin/hunt', label: 'Theft Hunt', icon: Dna },
   ]
 

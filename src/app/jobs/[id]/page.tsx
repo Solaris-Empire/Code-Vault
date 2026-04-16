@@ -17,6 +17,7 @@ import {
 } from '@/lib/jobs/types'
 import ApplyPanel from './apply-panel'
 import OwnerControls from './owner-controls'
+import ReportButton from '@/components/report-button'
 
 export const dynamic = 'force-dynamic'
 
@@ -189,6 +190,12 @@ export default async function JobDetailPage({
               />
             )}
           </div>
+
+          {!isOwner && user && (
+            <div className="mt-6 pt-4 border-t border-(--color-border)">
+              <ReportButton targetType="job" targetId={job.id} label="Report this job" />
+            </div>
+          )}
         </div>
       </div>
     </div>
