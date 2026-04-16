@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   // Throttle service creation to stop spam listings.
-  const rl = checkRateLimit(request, rateLimitConfigs.upload)
+  const rl = await checkRateLimit(request, rateLimitConfigs.upload)
   if (!rl.allowed) return rl.error!
 
   const supabase = await createClient()

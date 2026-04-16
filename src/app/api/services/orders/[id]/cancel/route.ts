@@ -8,6 +8,7 @@ import { z } from 'zod'
 import { requireAuth } from '@/lib/auth/verify'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
 import { getStripe } from '@/lib/stripe/client'
+import { captureError } from '@/lib/error-tracking'
 
 export const dynamic = 'force-dynamic'
 
@@ -70,7 +71,10 @@ export async function POST(
         },
       })
     } catch (err) {
-      console.error('Stripe refund on cancel failed:', err)
+      captureError(err instanceof Error ? err : new Error(String(err)), {
+        context: 'api:services:orders:cancel-refund',
+        extra: { orderId: order.id },
+      })
       return NextResponse.json(
         { error: { message: 'Failed to refund. Contact support.' } },
         { status: 500 },

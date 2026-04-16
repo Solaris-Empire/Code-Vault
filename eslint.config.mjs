@@ -37,6 +37,16 @@ const eslintConfig = defineConfig([
   // TypeScript strict rules and custom rules
   {
     files: ['**/*.{ts,tsx,mts,cts}'],
+    languageOptions: {
+      parserOptions: {
+        // projectService auto-discovers tsconfig.json for each file and
+        // provides type info to rules like prefer-nullish-coalescing and
+        // prefer-optional-chain. Without this, ESLint crashes on any
+        // type-aware rule. See https://typescript-eslint.io/getting-started/typed-linting
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
     rules: {
       // TypeScript strict rules
       '@typescript-eslint/no-explicit-any': 'error',

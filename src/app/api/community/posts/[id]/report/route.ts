@@ -23,7 +23,7 @@ export async function POST(
 ) {
   // Strict throttle — reports flag content for admin review and a
   // brigading account could otherwise drown the queue.
-  const rl = checkRateLimit(request, rateLimitConfigs.sensitive)
+  const rl = await checkRateLimit(request, rateLimitConfigs.sensitive)
   if (!rl.allowed) return rl.error!
 
   const auth = await requireAuth(request)

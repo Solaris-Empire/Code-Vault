@@ -5,6 +5,7 @@ import { requireAuth } from '@/lib/auth/verify'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
 import { getStripe } from '@/lib/stripe/client'
 import { checkRateLimit, rateLimitConfigs } from '@/lib/security/rate-limit'
+import { captureError } from '@/lib/error-tracking'
 import {
   DEFAULT_LICENSE_TIER,
   getLicenseTierDef,
@@ -29,7 +30,7 @@ const checkoutSchema = z.object({
 export async function POST(request: NextRequest) {
   // Strict throttle — every call creates a Stripe Checkout Session
   // (API cost + rate-limit pressure on our Stripe account).
-  const rl = checkRateLimit(request, rateLimitConfigs.order)
+  const rl = await checkRateLimit(request, rateLimitConfigs.order)
   if (!rl.allowed) return rl.error!
 
   // Only authenticated users can purchase
@@ -197,7 +198,9 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (err) {
-    console.error('Stripe session creation failed:', err)
+    captureError(err instanceof Error ? err : new Error(String(err)), {
+      context: 'api:checkout',
+    })
     return NextResponse.json(
       { error: { message: 'Failed to create checkout session' } },
       { status: 500 }

@@ -77,7 +77,7 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const rl = checkRateLimit(request, rateLimitConfigs.api)
+  const rl = await checkRateLimit(request, rateLimitConfigs.api)
   if (!rl.allowed) return rl.error!
 
   const supabase = await createClient()

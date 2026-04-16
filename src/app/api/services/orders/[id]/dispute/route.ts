@@ -18,7 +18,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   // Strict throttle — opening disputes is a heavy admin-touching action.
-  const rl = checkRateLimit(request, rateLimitConfigs.sensitive)
+  const rl = await checkRateLimit(request, rateLimitConfigs.sensitive)
   if (!rl.allowed) return rl.error!
 
   const { id } = await params

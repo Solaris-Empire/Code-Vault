@@ -6,64 +6,120 @@ interface RateLimitRecord {
   resetTime: number
 }
 
-/**
- * Rate limit storage backend.
- * Uses in-memory Map by default. When REDIS_URL is set, can be swapped to Redis
- * for multi-instance deployments (Vercel serverless, etc).
- *
- * To upgrade to Redis:
- * 1. npm install ioredis
- * 2. Set REDIS_URL env var
- * 3. Replace MemoryRateLimitStore with RedisRateLimitStore below
- */
+// ─── Store interface ───────────────────────────────────────────────
+// Async so the same shape supports both the in-process Map (fast path
+// for single-instance dev) and an out-of-process store like Upstash
+// Redis (required for multi-instance Vercel so one client can't split
+// their burst across Lambdas and escape the limit).
 interface RateLimitStore {
-  get(key: string): RateLimitRecord | undefined
-  set(key: string, record: RateLimitRecord): void
-  delete(key: string): void
-  cleanup(): void
+  incr(key: string, windowMs: number): Promise<RateLimitRecord>
 }
 
+// ─── In-memory store ───────────────────────────────────────────────
+// Per-Lambda only. Good for local dev and as a fallback; in prod on
+// Vercel each instance keeps its own counter so the effective limit
+// is N × the configured limit. Upstash fixes that.
 class MemoryRateLimitStore implements RateLimitStore {
   private store = new Map<string, RateLimitRecord>()
 
-  get(key: string) { return this.store.get(key) }
-  set(key: string, record: RateLimitRecord) { this.store.set(key, record) }
-  delete(key: string) { this.store.delete(key) }
+  async incr(key: string, windowMs: number): Promise<RateLimitRecord> {
+    const now = Date.now()
+    const existing = this.store.get(key)
+    if (!existing || existing.resetTime < now) {
+      const record = { count: 1, resetTime: now + windowMs }
+      this.store.set(key, record)
+      return record
+    }
+    existing.count++
+    return existing
+  }
 
   cleanup() {
     const now = Date.now()
     for (const [key, record] of this.store.entries()) {
-      if (record.resetTime < now) {
-        this.store.delete(key)
-      }
+      if (record.resetTime < now) this.store.delete(key)
     }
   }
 }
 
-// Singleton store - swap implementation here for Redis
-const rateLimitStore: RateLimitStore = new MemoryRateLimitStore()
+// ─── Upstash Redis store ───────────────────────────────────────────
+// Uses the Upstash REST API (no persistent connection — works in
+// serverless). Atomic INCR + conditional EXPIRE gives a fixed-window
+// counter that's consistent across Lambdas.
+//
+// Activated automatically when UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN
+// are set. Falls back to memory otherwise so dev never breaks.
+class UpstashRateLimitStore implements RateLimitStore {
+  constructor(private url: string, private token: string) {}
 
-// Clean up expired records periodically
-setInterval(() => rateLimitStore.cleanup(), 60000)
+  private async pipeline(commands: (string | number)[][]): Promise<unknown[]> {
+    const res = await fetch(`${this.url}/pipeline`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${this.token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(commands),
+      // Rate-limit checks must not be cached by any edge CDN or stale.
+      cache: 'no-store',
+    })
+    if (!res.ok) throw new Error(`Upstash pipeline failed: ${res.status}`)
+    return res.json() as Promise<unknown[]>
+  }
+
+  async incr(key: string, windowMs: number): Promise<RateLimitRecord> {
+    const windowSec = Math.ceil(windowMs / 1000)
+    // INCR returns the new count. PEXPIRE with NX only sets the TTL
+    // if no TTL is set — so the window starts when the first request
+    // of a window arrives, and subsequent requests don't reset it.
+    // PTTL reports remaining ms so we can surface resetTime to clients.
+    const results = await this.pipeline([
+      ['INCR', key],
+      ['PEXPIRE', key, windowMs, 'NX'],
+      ['PTTL', key],
+    ])
+    // Upstash pipeline returns [{ result }, { result }, ...]
+    const countResult = (results[0] as { result: number } | number)
+    const ttlResult = (results[2] as { result: number } | number)
+    const count = typeof countResult === 'number' ? countResult : countResult.result
+    const pttl = typeof ttlResult === 'number' ? ttlResult : ttlResult.result
+    // PTTL returns -1 if no TTL is set (shouldn't happen post-PEXPIRE-NX
+    // but guard anyway) and -2 if the key doesn't exist.
+    const remainingMs = pttl > 0 ? pttl : windowSec * 1000
+    return { count, resetTime: Date.now() + remainingMs }
+  }
+}
+
+// ─── Store selection ───────────────────────────────────────────────
+// Picked once at module load. We prefer Upstash when creds are set so
+// multi-instance deployments share counters; otherwise we fall back
+// to memory so local dev and single-instance envs still rate-limit.
+function selectStore(): RateLimitStore {
+  const url = process.env.UPSTASH_REDIS_REST_URL
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN
+  if (url && token) return new UpstashRateLimitStore(url, token)
+  return new MemoryRateLimitStore()
+}
+
+const rateLimitStore: RateLimitStore = selectStore()
+
+// Memory-store cleanup only runs when we're on memory (no-op for Redis).
+if (rateLimitStore instanceof MemoryRateLimitStore) {
+  setInterval(() => (rateLimitStore as MemoryRateLimitStore).cleanup(), 60000)
+}
 
 export interface RateLimitConfig {
-  // Maximum number of requests
   limit: number
-  // Window size in milliseconds
   windowMs: number
-  // Identifier prefix (e.g., 'auth', 'api')
   prefix?: string
-  // Custom key generator
   keyGenerator?: (request: NextRequest) => string
-  // Skip rate limiting for certain conditions
   skip?: (request: NextRequest) => boolean
-  // Custom message
   message?: string
 }
 
 export interface RateLimitResult {
   success: boolean
-  allowed: boolean // Alias for success for convenience
+  allowed: boolean
   remaining: number
   resetTime: number
   identifier: string
@@ -71,74 +127,62 @@ export interface RateLimitResult {
   error?: NextResponse
 }
 
-/**
- * Default configurations for different endpoint types
- */
 export const rateLimitConfigs = {
-  // Strict limits for auth endpoints
   auth: {
     limit: 5,
-    windowMs: 60 * 1000, // 1 minute
+    windowMs: 60 * 1000,
     prefix: 'auth',
     message: 'Too many authentication attempts. Please try again in a minute.'
   },
-  // Upload endpoint limits
   upload: {
     limit: 10,
-    windowMs: 5 * 60 * 1000, // 5 minutes
+    windowMs: 5 * 60 * 1000,
     prefix: 'upload',
     message: 'Too many uploads. Please wait before uploading more files.'
   },
-  // Review submission limits
   review: {
     limit: 5,
-    windowMs: 60 * 1000, // 1 minute
+    windowMs: 60 * 1000,
     prefix: 'review',
     message: 'Too many reviews submitted. Please wait before submitting more.'
   },
-  // Order creation limits
   order: {
     limit: 20,
-    windowMs: 60 * 1000, // 1 minute
+    windowMs: 60 * 1000,
     prefix: 'order',
     message: 'Too many order requests. Please slow down.'
   },
-  // General API limits
   api: {
     limit: 100,
-    windowMs: 60 * 1000, // 1 minute
+    windowMs: 60 * 1000,
     prefix: 'api',
     message: 'Too many requests. Please slow down.'
   },
-  // Strict limits for sensitive operations
   sensitive: {
     limit: 3,
-    windowMs: 60 * 1000, // 1 minute
+    windowMs: 60 * 1000,
     prefix: 'sensitive',
     message: 'Too many attempts. Please try again later.'
   }
 }
 
-/**
- * Get client identifier from request (delegates to centralized IP module)
- */
 function getClientIdentifier(request: NextRequest): string {
   return getClientIP(request)
 }
 
-/**
- * Check rate limit for a request
- */
-export function checkRateLimit(
+// ─── Check rate limit ──────────────────────────────────────────────
+// Async — required so we can talk to Upstash. When the store is
+// in-memory the Promise resolves synchronously so overhead is near
+// zero. If the Redis call throws, we fail open (allow the request)
+// rather than blocking legitimate traffic on an infrastructure blip.
+export async function checkRateLimit(
   request: NextRequest,
   config: RateLimitConfig = rateLimitConfigs.api
-): RateLimitResult {
-  // Generate key for this request
+): Promise<RateLimitResult> {
   const identifier = config.keyGenerator
     ? config.keyGenerator(request)
     : getClientIdentifier(request)
 
-  // Check if should skip rate limiting
   if (config.skip && config.skip(request)) {
     return {
       success: true,
@@ -151,36 +195,26 @@ export function checkRateLimit(
   }
 
   const key = `${config.prefix || 'default'}:${identifier}`
-  const now = Date.now()
 
-  // Get or create rate limit record
-  let record = rateLimitStore.get(key)
-
-  if (!record || record.resetTime < now) {
-    // Create new record
-    record = {
-      count: 1,
-      resetTime: now + config.windowMs
-    }
-    rateLimitStore.set(key, record)
-
+  let record: RateLimitRecord
+  try {
+    record = await rateLimitStore.incr(key, config.windowMs)
+  } catch {
+    // Fail open on store outage — rate-limiting is a defensive layer,
+    // not an auth check, and blocking everyone on a Redis hiccup is
+    // worse than temporarily under-limiting.
     return {
       success: true,
       allowed: true,
-      remaining: config.limit - 1,
-      resetTime: record.resetTime,
+      remaining: config.limit,
+      resetTime: Date.now() + config.windowMs,
       identifier,
-      limit: config.limit
+      limit: config.limit,
     }
   }
 
-  // Update the record in store (needed for non-Map backends like Redis)
-
-  // Increment count
-  record.count++
-
   if (record.count > config.limit) {
-    // Rate limit exceeded
+    const now = Date.now()
     const retryAfter = Math.ceil((record.resetTime - now) / 1000)
 
     return {
@@ -218,26 +252,15 @@ export function checkRateLimit(
   }
 }
 
-/**
- * Middleware-style rate limiter
- */
 export function rateLimit(config: RateLimitConfig = rateLimitConfigs.api) {
-  return (request: NextRequest): RateLimitResult => {
-    return checkRateLimit(request, config)
-  }
+  return (request: NextRequest): Promise<RateLimitResult> => checkRateLimit(request, config)
 }
 
-/**
- * Create rate limiter for a specific endpoint
- */
 export function createRateLimiter(config: Partial<RateLimitConfig>) {
   const finalConfig = { ...rateLimitConfigs.api, ...config }
   return (request: NextRequest) => checkRateLimit(request, finalConfig)
 }
 
-/**
- * Add rate limit headers to a response
- */
 export function addRateLimitHeaders(
   response: NextResponse,
   result: RateLimitResult

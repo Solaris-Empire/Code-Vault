@@ -19,13 +19,14 @@ import { CreateServiceOrderSchema } from '@/lib/services/validation'
 import { computeFixedSplit, computeHourlySplit } from '@/lib/services/pricing'
 import type { SellerServiceRow } from '@/lib/services/types'
 import { checkRateLimit, rateLimitConfigs } from '@/lib/security/rate-limit'
+import { captureError } from '@/lib/error-tracking'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   // Throttle order creation to prevent runaway draft rows from a buggy
   // client or scripted abuse.
-  const rl = checkRateLimit(request, rateLimitConfigs.order)
+  const rl = await checkRateLimit(request, rateLimitConfigs.order)
   if (!rl.allowed) return rl.error!
 
   const auth = await requireAuth(request)
@@ -122,7 +123,10 @@ export async function POST(request: NextRequest) {
     .single()
 
   if (orderErr || !orderRow) {
-    console.error('service_orders insert failed:', orderErr)
+    captureError(orderErr instanceof Error ? orderErr : new Error(String(orderErr)), {
+      context: 'api:services:orders:insert',
+      extra: { serviceId: svc.id, buyerId: auth.user!.id },
+    })
     return NextResponse.json({ error: { message: 'Failed to create order' } }, { status: 500 })
   }
 
@@ -174,7 +178,10 @@ export async function POST(request: NextRequest) {
       data: { orderId: orderRow.id, sessionId: session.id, url: session.url },
     })
   } catch (err) {
-    console.error('Stripe session creation for service failed:', err)
+    captureError(err instanceof Error ? err : new Error(String(err)), {
+      context: 'api:services:orders:stripe-session',
+      extra: { orderId: orderRow.id },
+    })
     // Best-effort cleanup of the unpaid row so the buyer can retry cleanly.
     await admin.from('service_orders').delete().eq('id', orderRow.id)
     return NextResponse.json(

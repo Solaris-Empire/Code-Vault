@@ -23,7 +23,7 @@ const PinSchema = z.object({
 })
 
 export async function PUT(request: NextRequest) {
-  const rl = checkRateLimit(request, rateLimitConfigs.api)
+  const rl = await checkRateLimit(request, rateLimitConfigs.api)
   if (!rl.allowed) return rl.error!
 
   const auth = await requireAuth(request)

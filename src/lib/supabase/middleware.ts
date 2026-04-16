@@ -99,7 +99,7 @@ export async function updateSession(request: NextRequest) {
 
   // Rate limiting for auth endpoints
   if (pathname.startsWith('/api/auth') || pathname.startsWith('/auth')) {
-    const rateLimit = checkRateLimit(request, rateLimitConfigs.auth)
+    const rateLimit = await checkRateLimit(request, rateLimitConfigs.auth)
     if (!rateLimit.allowed) {
       // Log rate limit violation
       logRateLimitViolation(request, pathname, rateLimit.identifier)
@@ -113,7 +113,7 @@ export async function updateSession(request: NextRequest) {
 
   // Rate limiting for upload endpoints
   if (pathname.startsWith('/api/upload')) {
-    const rateLimitResult = checkRateLimit(request, rateLimitConfigs.upload)
+    const rateLimitResult = await checkRateLimit(request, rateLimitConfigs.upload)
     if (!rateLimitResult.allowed) {
       logRateLimitViolation(request, pathname, rateLimitResult.identifier)
       const response = NextResponse.json(
@@ -126,7 +126,7 @@ export async function updateSession(request: NextRequest) {
 
   // Rate limiting for admin endpoints (use general API limits, not sensitive)
   if (pathname.startsWith('/api/admin')) {
-    const rateLimitResult = checkRateLimit(request, rateLimitConfigs.api)
+    const rateLimitResult = await checkRateLimit(request, rateLimitConfigs.api)
     if (!rateLimitResult.allowed) {
       logRateLimitViolation(request, pathname, rateLimitResult.identifier)
       const response = NextResponse.json(
@@ -140,7 +140,7 @@ export async function updateSession(request: NextRequest) {
   // Rate limiting for general API endpoints (search, products, etc.)
   // Skip webhooks - they use their own signature verification and can burst
   if (pathname.startsWith('/api/') && !pathname.startsWith('/api/auth') && !pathname.startsWith('/api/admin') && !pathname.startsWith('/api/upload') && !pathname.startsWith('/api/webhooks/')) {
-    const rateLimitResult = checkRateLimit(request, rateLimitConfigs.api)
+    const rateLimitResult = await checkRateLimit(request, rateLimitConfigs.api)
     if (!rateLimitResult.allowed) {
       logRateLimitViolation(request, pathname, rateLimitResult.identifier)
       const response = NextResponse.json(

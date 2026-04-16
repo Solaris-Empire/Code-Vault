@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
 // The upload form at /seller/products/new calls this after uploading
 // the thumbnail and product file to Supabase Storage.
 export async function POST(request: NextRequest) {
-  const rl = checkRateLimit(request, rateLimitConfigs.upload)
+  const rl = await checkRateLimit(request, rateLimitConfigs.upload)
   if (!rl.allowed) return rl.error!
 
   const auth = await requireSeller(request)

@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from '@/lib/supabase/server'
 import { requireAuth } from '@/lib/auth/verify'
 import { logFileUpload, sanitizeFilename } from '@/lib/security'
 import { checkRateLimit, rateLimitConfigs } from '@/lib/security/rate-limit'
+import { captureError } from '@/lib/error-tracking'
 import crypto from 'crypto'
 
 export const dynamic = 'force-dynamic'
@@ -71,7 +72,7 @@ const BUCKET_CONFIG: Record<string, {
 export async function POST(request: NextRequest) {
   // Strict throttle — uploads allow up to 500MB per call. Without this
   // a single authed account can eat storage + egress budget in minutes.
-  const rl = checkRateLimit(request, rateLimitConfigs.upload)
+  const rl = await checkRateLimit(request, rateLimitConfigs.upload)
   if (!rl.allowed) return rl.error!
 
   // Verify user authentication
@@ -173,7 +174,10 @@ export async function POST(request: NextRequest) {
     })
 
   if (error) {
-    console.error('Storage upload failed:', error)
+    captureError(error instanceof Error ? error : new Error(String(error)), {
+      context: 'api:upload',
+      extra: { bucket: bucketName, size: file.size },
+    })
     return NextResponse.json(
       { error: { message: 'Upload failed. Please try again.' } },
       { status: 500 }

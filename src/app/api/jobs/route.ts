@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
 
   // Throttle job creation — stops an attacker (or a buggy client) from
   // flooding the board with thousands of listings in seconds.
-  const rl = checkRateLimit(request, rateLimitConfigs.upload)
+  const rl = await checkRateLimit(request, rateLimitConfigs.upload)
   if (!rl.allowed) return rl.error!
 
   const auth = await requireAuth(request)

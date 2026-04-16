@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic'
 
 // GET - List buyer's orders
 export async function GET(request: NextRequest) {
-  const rl = checkRateLimit(request, rateLimitConfigs.api)
+  const rl = await checkRateLimit(request, rateLimitConfigs.api)
   if (!rl.allowed) return rl.error!
 
   try {

@@ -69,7 +69,7 @@ const EXT_FOR_MIME: Record<string, string> = {
 
 export async function POST(request: NextRequest) {
   // Strict throttle — each call accepts up to 5 × 5MB images.
-  const rl = checkRateLimit(request, rateLimitConfigs.upload)
+  const rl = await checkRateLimit(request, rateLimitConfigs.upload)
   if (!rl.allowed) return rl.error!
 
   try {

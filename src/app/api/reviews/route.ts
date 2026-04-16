@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
 // POST - Submit a review (must own the product via completed order)
 export async function POST(request: NextRequest) {
   // Per-IP throttle — stops review flooding from scripted accounts.
-  const rl = checkRateLimit(request, rateLimitConfigs.review)
+  const rl = await checkRateLimit(request, rateLimitConfigs.review)
   if (!rl.allowed) return rl.error!
 
   const supabase = await getSupabaseServer()

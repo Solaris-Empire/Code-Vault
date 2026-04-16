@@ -46,7 +46,7 @@ const CreateSchema = z.object({
 export async function POST(request: NextRequest) {
   // Throttle post creation — without this a single signed-in account
   // can flood the feed in seconds.
-  const rl = checkRateLimit(request, rateLimitConfigs.upload)
+  const rl = await checkRateLimit(request, rateLimitConfigs.upload)
   if (!rl.allowed) return rl.error!
 
   const auth = await requireAuth(request)

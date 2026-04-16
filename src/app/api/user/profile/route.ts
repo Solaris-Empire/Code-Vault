@@ -54,7 +54,7 @@ export async function GET() {
 }
 
 export async function PUT(request: NextRequest) {
-  const rl = checkRateLimit(request, rateLimitConfigs.api)
+  const rl = await checkRateLimit(request, rateLimitConfigs.api)
   if (!rl.allowed) return rl.error!
 
   try {

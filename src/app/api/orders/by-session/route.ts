@@ -18,7 +18,7 @@ const sessionIdSchema = z.string().regex(/^cs_(test|live)_[A-Za-z0-9]{10,200}$/)
 export async function GET(request: NextRequest) {
   // Each call hits Stripe's API to resolve the session — throttle so a
   // scripted client can't burn through our Stripe rate budget.
-  const rl = checkRateLimit(request, rateLimitConfigs.api)
+  const rl = await checkRateLimit(request, rateLimitConfigs.api)
   if (!rl.allowed) return rl.error!
 
   const auth = await requireAuth(request)

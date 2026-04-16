@@ -10,7 +10,7 @@ const bodySchema = z.object({
 })
 
 export async function POST(request: NextRequest) {
-  const rl = checkRateLimit(request, rateLimitConfigs.api)
+  const rl = await checkRateLimit(request, rateLimitConfigs.api)
   if (!rl.allowed) return rl.error!
 
   try {

@@ -20,6 +20,7 @@ import { z } from 'zod'
 import { requireAuth } from '@/lib/auth/verify'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
 import { getStripe } from '@/lib/stripe/client'
+import { captureError } from '@/lib/error-tracking'
 
 export const dynamic = 'force-dynamic'
 
@@ -164,7 +165,10 @@ export async function PATCH(
       },
     })
   } catch (err) {
-    console.error('Stripe refund on dispute resolution failed:', err)
+    captureError(err instanceof Error ? err : new Error(String(err)), {
+      context: 'api:admin:disputes:stripe-refund',
+      extra: { orderId: order.id, disputeId: dispute.id },
+    })
     return NextResponse.json(
       { error: { message: 'Failed to refund via Stripe. Dispute left open.' } },
       { status: 500 },

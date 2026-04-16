@@ -14,7 +14,7 @@ export async function GET(
 ) {
   // Cheap throttle on the public read — stops a competitor from
   // bulk-scraping every product's full analysis JSON.
-  const rl = checkRateLimit(request, rateLimitConfigs.api)
+  const rl = await checkRateLimit(request, rateLimitConfigs.api)
   if (!rl.allowed) return rl.error!
 
   const { id } = await params
@@ -77,7 +77,7 @@ export async function POST(
 ) {
   // Strict throttle — each rerun pulls the ZIP, extracts, fingerprints,
   // and hits OSV. Without this a single account can DoS the worker.
-  const rl = checkRateLimit(request, rateLimitConfigs.upload)
+  const rl = await checkRateLimit(request, rateLimitConfigs.upload)
   if (!rl.allowed) return rl.error!
 
   const supabase = await createClient()

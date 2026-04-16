@@ -31,7 +31,7 @@ export async function POST(
   // Throttle application submissions — even with the UNIQUE constraint
   // catching the duplicate write, a rapid-fire client could hammer the
   // endpoint. This stops it at the edge.
-  const rl = checkRateLimit(request, rateLimitConfigs.order)
+  const rl = await checkRateLimit(request, rateLimitConfigs.order)
   if (!rl.allowed) return rl.error!
 
   const auth = await requireAuth(request)

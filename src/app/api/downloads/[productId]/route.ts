@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth/verify'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
 import { checkRateLimit, rateLimitConfigs } from '@/lib/security/rate-limit'
+import { captureError } from '@/lib/error-tracking'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,7 +17,7 @@ export async function GET(
   // Strict throttle — every call mints a fresh 1-hour signed CDN URL and
   // touches storage + DB. A compromised session without this limit would
   // let an attacker scrape unlimited download URLs.
-  const rl = checkRateLimit(request, rateLimitConfigs.sensitive)
+  const rl = await checkRateLimit(request, rateLimitConfigs.sensitive)
   if (!rl.allowed) return rl.error!
 
   const auth = await requireAuth(request)
@@ -96,7 +97,10 @@ export async function GET(
   if (!urlObj.pathname.includes(publicPrefix)) {
     // Fail closed — a malformed row is a schema bug, not something we
     // should paper over by passing the raw URL into createSignedUrl.
-    console.error('Download: file_url is not a canonical Supabase Storage URL', { productId })
+    captureError(new Error('file_url is not a canonical Supabase Storage URL'), {
+      context: 'api:downloads',
+      extra: { productId },
+    })
     return NextResponse.json(
       { error: { message: 'Download not available. Contact support.' } },
       { status: 500 },
@@ -110,7 +114,9 @@ export async function GET(
     .createSignedUrl(storagePath, 3600) // 3600 seconds = 1 hour
 
   if (signError || !signedData?.signedUrl) {
-    console.error('Signed URL generation failed:', signError)
+    captureError(signError instanceof Error ? signError : new Error(String(signError)), {
+      context: 'api:downloads:signed-url',
+    })
     return NextResponse.json(
       { error: { message: 'Failed to generate download link' } },
       { status: 500 }

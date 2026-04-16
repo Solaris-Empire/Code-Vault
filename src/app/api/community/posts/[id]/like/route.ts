@@ -15,7 +15,7 @@ export async function POST(
   request: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const rl = checkRateLimit(request, rateLimitConfigs.api)
+  const rl = await checkRateLimit(request, rateLimitConfigs.api)
   if (!rl.allowed) return rl.error!
 
   const auth = await requireAuth(request)
@@ -62,7 +62,7 @@ export async function DELETE(
   request: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const rl = checkRateLimit(request, rateLimitConfigs.api)
+  const rl = await checkRateLimit(request, rateLimitConfigs.api)
   if (!rl.allowed) return rl.error!
 
   const auth = await requireAuth(request)
