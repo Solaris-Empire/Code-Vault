@@ -13,6 +13,7 @@ import {
   SKILL_OPTIONS,
   type EmploymentType,
 } from '@/lib/jobs/types'
+import { getSecureHeaders } from '@/lib/security/client'
 
 export interface JobFormInitialValues {
   id?: string
@@ -112,7 +113,7 @@ export default function PostJobForm({ mode = 'create', initial }: Props = {}) {
 
       const res = await fetch(url, {
         method,
-        headers: { 'content-type': 'application/json' },
+        headers: getSecureHeaders(),
         body: JSON.stringify(body),
       })
       const json = await res.json()
