@@ -6,6 +6,12 @@ import { Footer } from '@/components/layout/footer'
 import { getBetaFlagsForClient } from '@/lib/feature-flags'
 import './globals.css'
 
+// Force per-request rendering so getBetaFlagsForClient() picks up
+// live FEATURE_* env vars. Without this, Next.js can statically
+// prerender the root layout and bake in a stale flag snapshot,
+// which hides Hire/Jobs/Community nav even after flags are flipped.
+export const dynamic = 'force-dynamic'
+
 const fraunces = Fraunces({
   subsets: ['latin'],
   variable: '--font-fraunces',
