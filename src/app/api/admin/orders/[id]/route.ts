@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { createClient, getSupabaseAdmin } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
+
+const updateOrderSchema = z.object({
+  status: z.enum(['pending', 'completed', 'refunded', 'failed']),
+}).strict()
 
 async function requireAdmin() {
   const supabase = await createClient()
@@ -47,12 +52,14 @@ export async function PUT(
   }
 
   const { id } = await params
-  const body = await request.json()
-  const { status } = body
-
-  if (!status || !['pending', 'completed', 'refunded', 'failed'].includes(status)) {
-    return NextResponse.json({ error: { message: 'Invalid status' } }, { status: 400 })
+  const parsed = updateOrderSchema.safeParse(await request.json().catch(() => null))
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: { message: 'Invalid payload', issues: parsed.error.issues } },
+      { status: 400 },
+    )
   }
+  const { status } = parsed.data
 
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase

@@ -13,6 +13,12 @@ const reviewSchema = z.object({
   comment: z.string().trim().max(2000).nullable().optional(),
 })
 
+const listQuerySchema = z.object({
+  product_id: z.string().uuid(),
+  page: z.coerce.number().int().min(1).max(10_000).default(1),
+  limit: z.coerce.number().int().min(1).max(50).default(10),
+})
+
 function getSupabaseAdmin() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -38,13 +44,18 @@ async function getSupabaseServer() {
 // GET reviews for a product
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
-  const productId = searchParams.get('product_id')
-  const page = parseInt(searchParams.get('page') || '1')
-  const limit = parseInt(searchParams.get('limit') || '10')
-
-  if (!productId) {
-    return NextResponse.json({ error: { message: 'Product ID is required' } }, { status: 400 })
+  const parsed = listQuerySchema.safeParse({
+    product_id: searchParams.get('product_id'),
+    page: searchParams.get('page') ?? undefined,
+    limit: searchParams.get('limit') ?? undefined,
+  })
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: { message: 'Invalid query', issues: parsed.error.issues } },
+      { status: 400 },
+    )
   }
+  const { product_id: productId, page, limit } = parsed.data
 
   const supabaseAdmin = getSupabaseAdmin()
   const offset = (page - 1) * limit

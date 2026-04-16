@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { requireAdmin } from '@/lib/auth/verify'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
+
+const querySchema = z.object({
+  status: z.enum(['draft', 'pending', 'approved', 'rejected', 'all']).nullish(),
+  search: z.string().trim().max(200).nullish(),
+})
 
 // ─── GET /api/admin/products ───────────────────────────────────────
 // Lists all products for admin review. Supports filtering by status.
@@ -10,9 +16,17 @@ export async function GET(request: NextRequest) {
   const auth = await requireAdmin(request)
   if (!auth.success) return auth.error!
 
-  const { searchParams } = request.nextUrl
-  const status = searchParams.get('status')
-  const search = searchParams.get('search')
+  const parsed = querySchema.safeParse({
+    status: request.nextUrl.searchParams.get('status'),
+    search: request.nextUrl.searchParams.get('search'),
+  })
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: { message: 'Invalid query', issues: parsed.error.issues } },
+      { status: 400 },
+    )
+  }
+  const { status, search } = parsed.data
 
   const admin = getSupabaseAdmin()
 

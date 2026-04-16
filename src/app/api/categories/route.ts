@@ -1,7 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { createClient, getSupabaseAdmin } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
+
+const createCategorySchema = z.object({
+  name: z.string().trim().min(1).max(200),
+  slug: z.string().trim().min(1).max(100).regex(/^[a-z0-9-]+$/, 'Invalid slug'),
+  description: z.string().trim().max(2000).nullable().optional(),
+  icon: z.string().trim().max(100).nullable().optional(),
+  parent_id: z.string().uuid().nullable().optional(),
+  sort_order: z.number().int().min(0).max(1_000_000).optional(),
+}).strict()
 
 // GET all categories (public)
 export async function GET() {
@@ -43,17 +53,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: { message: 'Forbidden' } }, { status: 403 })
   }
 
+  const parsed = createCategorySchema.safeParse(await request.json().catch(() => null))
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: { message: 'Invalid payload', issues: parsed.error.issues } },
+      { status: 400 },
+    )
+  }
+  const { name, slug, description, icon, parent_id, sort_order } = parsed.data
+
   try {
-    const body = await request.json()
-    const { name, slug, description, icon, parent_id, sort_order } = body
-
-    if (!name || typeof name !== 'string' || name.length > 200) {
-      return NextResponse.json({ error: { message: 'Valid name required (max 200 chars)' } }, { status: 400 })
-    }
-    if (!slug || typeof slug !== 'string' || !/^[a-z0-9-]+$/.test(slug)) {
-      return NextResponse.json({ error: { message: 'Valid slug required (lowercase, numbers, hyphens)' } }, { status: 400 })
-    }
-
     const supabaseAdmin = getSupabaseAdmin()
     const { data, error } = await supabaseAdmin
       .from('categories')

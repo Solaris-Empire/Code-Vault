@@ -3,6 +3,7 @@
 // POST — authenticated seller creates a new service.
 
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { createClient, getSupabaseAdmin } from '@/lib/supabase/server'
 import { CreateServiceSchema } from '@/lib/services/validation'
 import { slugify } from '@/lib/utils/format'
@@ -11,16 +12,34 @@ import { checkRateLimit, rateLimitConfigs } from '@/lib/security/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
+const listQuerySchema = z.object({
+  tier: z.enum(['vibe', 'real']).nullish(),
+  category: z.string().trim().max(100).regex(/^[a-z0-9-]+$/).nullish(),
+  search: z.string().trim().max(200).nullish(),
+  sort: z.enum(['newest', 'price_asc', 'price_desc', 'rating', 'popular']).default('newest'),
+  limit: z.coerce.number().int().min(1).max(60).default(24),
+  offset: z.coerce.number().int().min(0).max(100_000).default(0),
+})
+
 // ─── GET /api/services ─────────────────────────────────────────────
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
-  const tier = searchParams.get('tier')
-  const categorySlug = searchParams.get('category')
-  const search = searchParams.get('search')?.trim()
-  const sort = searchParams.get('sort') || 'newest'
-  const limit = Math.min(parseInt(searchParams.get('limit') || '24', 10), 60)
-  const offset = parseInt(searchParams.get('offset') || '0', 10)
+  const parsed = listQuerySchema.safeParse({
+    tier: searchParams.get('tier'),
+    category: searchParams.get('category'),
+    search: searchParams.get('search'),
+    sort: searchParams.get('sort') ?? undefined,
+    limit: searchParams.get('limit') ?? undefined,
+    offset: searchParams.get('offset') ?? undefined,
+  })
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: { message: 'Invalid query', issues: parsed.error.issues } },
+      { status: 400 },
+    )
+  }
+  const { tier, category: categorySlug, search, sort, limit, offset } = parsed.data
 
   try {
     const admin = getSupabaseAdmin()

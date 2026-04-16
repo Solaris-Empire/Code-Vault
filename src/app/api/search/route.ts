@@ -1,19 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
 import { captureError } from '@/lib/error-tracking'
 
 export const dynamic = 'force-dynamic'
 
+const querySchema = z.object({
+  q: z.string().max(200).default(''),
+  page: z.coerce.number().int().min(1).max(100).default(1),
+  limit: z.coerce.number().int().min(1).max(50).default(20),
+  sort: z.enum(['relevance', 'newest', 'price_asc', 'price_desc', 'rating', 'popular']).default('relevance'),
+  category: z.string().trim().max(100).regex(/^[a-z0-9-]+$/).nullish(),
+  minPrice: z.coerce.number().int().min(0).max(100_000_000).optional(),
+  maxPrice: z.coerce.number().int().min(0).max(100_000_000).optional(),
+})
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
-  const rawQuery = searchParams.get('q') || ''
-  const query = rawQuery.slice(0, 200)
-  const page = Math.min(Math.max(parseInt(searchParams.get('page') || '1') || 1, 1), 100)
-  const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '20') || 20, 1), 50)
-  const sortBy = searchParams.get('sort') || 'relevance'
-  const category = searchParams.get('category')
-  const minPrice = searchParams.get('minPrice')
-  const maxPrice = searchParams.get('maxPrice')
+  const parsed = querySchema.safeParse({
+    q: searchParams.get('q') ?? undefined,
+    page: searchParams.get('page') ?? undefined,
+    limit: searchParams.get('limit') ?? undefined,
+    sort: searchParams.get('sort') ?? undefined,
+    category: searchParams.get('category'),
+    minPrice: searchParams.get('minPrice') ?? undefined,
+    maxPrice: searchParams.get('maxPrice') ?? undefined,
+  })
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: { message: 'Invalid query', issues: parsed.error.issues } },
+      { status: 400 },
+    )
+  }
+  const { page, limit, sort: sortBy, category, minPrice, maxPrice } = parsed.data
+  const rawQuery = parsed.data.q
+  const query = rawQuery
 
   const offset = Math.min((page - 1) * limit, 5000)
   const supabase = getSupabaseAdmin()
@@ -44,11 +65,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Price filters (in cents)
-    if (minPrice) {
-      dbQuery = dbQuery.gte('price_cents', parseInt(minPrice))
+    if (minPrice !== undefined) {
+      dbQuery = dbQuery.gte('price_cents', minPrice)
     }
-    if (maxPrice) {
-      dbQuery = dbQuery.lte('price_cents', parseInt(maxPrice))
+    if (maxPrice !== undefined) {
+      dbQuery = dbQuery.lte('price_cents', maxPrice)
     }
 
     // Sorting

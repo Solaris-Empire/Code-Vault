@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { createClient, getSupabaseAdmin } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
+
+const querySchema = z.object({
+  role: z.enum(['buyer', 'seller', 'admin']).nullish(),
+  search: z.string().trim().max(200).nullish(),
+  limit: z.coerce.number().int().min(1).max(200).default(50),
+  offset: z.coerce.number().int().min(0).max(100_000).default(0),
+})
 
 async function requireAdmin() {
   const supabase = await createClient()
@@ -20,10 +28,19 @@ export async function GET(request: NextRequest) {
   }
 
   const { searchParams } = new URL(request.url)
-  const role = searchParams.get('role')
-  const search = searchParams.get('search')
-  const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 200)
-  const offset = parseInt(searchParams.get('offset') || '0')
+  const parsed = querySchema.safeParse({
+    role: searchParams.get('role'),
+    search: searchParams.get('search'),
+    limit: searchParams.get('limit') ?? undefined,
+    offset: searchParams.get('offset') ?? undefined,
+  })
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: { message: 'Invalid query', issues: parsed.error.issues } },
+      { status: 400 },
+    )
+  }
+  const { role, search, limit, offset } = parsed.data
 
   const supabase = getSupabaseAdmin()
 

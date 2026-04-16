@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { createClient, getSupabaseAdmin } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
+
+const updateUserSchema = z.object({
+  role: z.enum(['buyer', 'seller', 'admin']),
+}).strict()
 
 async function requireAdmin() {
   const supabase = await createClient()
@@ -48,12 +53,14 @@ export async function PUT(
   }
 
   const { id } = await params
-  const body = await request.json()
-  const { role } = body
-
-  if (!role || !['buyer', 'seller', 'admin'].includes(role)) {
-    return NextResponse.json({ error: { message: 'Invalid role' } }, { status: 400 })
+  const parsed = updateUserSchema.safeParse(await request.json().catch(() => null))
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: { message: 'Invalid payload', issues: parsed.error.issues } },
+      { status: 400 },
+    )
   }
+  const { role } = parsed.data
 
   // Block self-demotion. An admin editing themselves down to buyer/seller
   // is almost always a mistake — and with a single-admin setup it bricks

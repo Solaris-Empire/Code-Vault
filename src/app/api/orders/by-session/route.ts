@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { requireAuth } from '@/lib/auth/verify'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
 import { getStripe } from '@/lib/stripe/client'
 import { checkRateLimit, rateLimitConfigs } from '@/lib/security/rate-limit'
 
 export const dynamic = 'force-dynamic'
+
+// Stripe Checkout Session IDs look like `cs_test_xxx` or `cs_live_xxx`.
+// Enforcing the prefix + charset stops us from burning a Stripe API call
+// on an obviously-malformed value (or an attacker-probed path/UUID).
+const sessionIdSchema = z.string().regex(/^cs_(test|live)_[A-Za-z0-9]{10,200}$/)
 
 // ─── GET /api/orders/by-session?session_id=... ─────────────────────
 // Fetches order details using a Stripe Checkout Session ID.
@@ -18,13 +24,14 @@ export async function GET(request: NextRequest) {
   const auth = await requireAuth(request)
   if (!auth.success) return auth.error!
 
-  const sessionId = request.nextUrl.searchParams.get('session_id')
-  if (!sessionId) {
+  const parsed = sessionIdSchema.safeParse(request.nextUrl.searchParams.get('session_id'))
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: { message: 'session_id is required' } },
-      { status: 400 }
+      { error: { message: 'Invalid session_id' } },
+      { status: 400 },
     )
   }
+  const sessionId = parsed.data
 
   // Look up the Stripe session to get the payment_intent ID
   const stripe = getStripe()
