@@ -3,6 +3,7 @@ import { Fraunces, DM_Sans, JetBrains_Mono } from 'next/font/google'
 import { AnnouncementBar } from '@/components/layout/AnnouncementBar'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
+import { CsrfProvider } from '@/components/csrf-provider'
 import { getBetaFlagsForClient } from '@/lib/feature-flags'
 import './globals.css'
 
@@ -65,10 +66,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${fraunces.variable} ${dmSans.variable} ${jetbrainsMono.variable}`}>
       <body className="font-sans antialiased bg-background text-foreground">
-        <AnnouncementBar />
-        <Header betaFlags={betaFlags} />
-        <main id="main-content">{children}</main>
-        <Footer />
+        <CsrfProvider>
+          <AnnouncementBar />
+          <Header betaFlags={betaFlags} />
+          <main id="main-content">{children}</main>
+          <Footer />
+        </CsrfProvider>
       </body>
     </html>
   )
