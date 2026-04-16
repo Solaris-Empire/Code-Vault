@@ -37,7 +37,7 @@ export default async function JobDetailPage({
     .select(`
       id, poster_id, title, company_name, company_website,
       employment_type, location, remote,
-      salary_min_cents, salary_max_cents, salary_currency,
+      salary_min_cents, salary_max_cents, salary_currency, salary_period,
       description, requirements, benefits, skills,
       apply_url, apply_email,
       application_count, view_count, status, expires_at, created_at,
@@ -73,6 +73,7 @@ export default async function JobDetailPage({
     job.salary_min_cents,
     job.salary_max_cents,
     job.salary_currency,
+    job.salary_period,
   )
   const expired = new Date(job.expires_at) < new Date()
   const isOwner = user?.id === job.poster_id

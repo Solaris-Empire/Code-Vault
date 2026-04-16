@@ -152,6 +152,7 @@ export default async function JobsPage({
               job.salary_min_cents,
               job.salary_max_cents,
               job.salary_currency,
+              job.salary_period,
             )
             return (
               <Link

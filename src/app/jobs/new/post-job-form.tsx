@@ -10,8 +10,12 @@ import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 import {
   EMPLOYMENT_TYPE_OPTIONS,
+  SALARY_CURRENCY_OPTIONS,
+  SALARY_PERIOD_OPTIONS,
   SKILL_OPTIONS,
+  formatSalaryRange,
   type EmploymentType,
+  type SalaryPeriod,
 } from '@/lib/jobs/types'
 import { getSecureHeaders } from '@/lib/security/client'
 
@@ -26,6 +30,7 @@ export interface JobFormInitialValues {
   salaryMinCents?: number | null
   salaryMaxCents?: number | null
   salaryCurrency?: string
+  salaryPeriod?: SalaryPeriod
   description?: string
   requirements?: string | null
   benefits?: string | null
@@ -57,6 +62,9 @@ export default function PostJobForm({ mode = 'create', initial }: Props = {}) {
   const [salaryMin, setSalaryMin] = useState(centsToInput(initial?.salaryMinCents))
   const [salaryMax, setSalaryMax] = useState(centsToInput(initial?.salaryMaxCents))
   const [currency, setCurrency] = useState(initial?.salaryCurrency ?? 'USD')
+  const [salaryPeriod, setSalaryPeriod] = useState<SalaryPeriod>(
+    initial?.salaryPeriod ?? 'year',
+  )
   const [description, setDescription] = useState(initial?.description ?? '')
   const [requirements, setRequirements] = useState(initial?.requirements ?? '')
   const [benefits, setBenefits] = useState(initial?.benefits ?? '')
@@ -100,6 +108,7 @@ export default function PostJobForm({ mode = 'create', initial }: Props = {}) {
         salaryMinCents: salaryMin ? Math.round(parseFloat(salaryMin) * 100) : null,
         salaryMaxCents: salaryMax ? Math.round(parseFloat(salaryMax) * 100) : null,
         salaryCurrency: currency.toUpperCase(),
+        salaryPeriod,
         description: description.trim(),
         requirements: requirements.trim() || null,
         benefits: benefits.trim() || null,
@@ -199,37 +208,64 @@ export default function PostJobForm({ mode = 'create', initial }: Props = {}) {
       </FieldGroup>
 
       <FieldGroup title="Compensation (optional)">
-        <div className="grid gap-3 sm:grid-cols-3">
-          <Field label="Min">
+        <p className="text-xs text-(--color-text-muted) mb-2">
+          Candidates filter heavily on pay. Toptal, LinkedIn and Upwork
+          listings with a visible range get 3x more qualified applications.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-4">
+          <Field label="Currency">
+            <select
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
+              className={inputCls}
+            >
+              {SALARY_CURRENCY_OPTIONS.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </Field>
+          <Field label={`Min ${currency}`}>
             <input
               type="number"
               min={0}
+              inputMode="numeric"
               value={salaryMin}
               onChange={(e) => setSalaryMin(e.target.value)}
-              placeholder="60000"
+              placeholder={salaryPeriod === 'hour' ? '45' : '60000'}
               className={inputCls}
             />
           </Field>
-          <Field label="Max">
+          <Field label={`Max ${currency}`}>
             <input
               type="number"
               min={0}
+              inputMode="numeric"
               value={salaryMax}
               onChange={(e) => setSalaryMax(e.target.value)}
-              placeholder="90000"
+              placeholder={salaryPeriod === 'hour' ? '80' : '90000'}
               className={inputCls}
             />
           </Field>
-          <Field label="Currency">
-            <input
-              type="text"
-              maxLength={3}
-              value={currency}
-              onChange={(e) => setCurrency(e.target.value.toUpperCase())}
+          <Field label="Period">
+            <select
+              value={salaryPeriod}
+              onChange={(e) => setSalaryPeriod(e.target.value as SalaryPeriod)}
               className={inputCls}
-            />
+            >
+              {SALARY_PERIOD_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
           </Field>
         </div>
+        {(salaryMin || salaryMax) && (
+          <p className="text-xs text-(--color-text-muted) mt-2">
+            Preview:{' '}
+            <span className="text-(--brand-primary) font-semibold">
+              {salaryPreview(salaryMin, salaryMax, currency, salaryPeriod)}
+            </span>
+          </p>
+        )}
       </FieldGroup>
 
       <FieldGroup title="Details">
@@ -338,6 +374,19 @@ export default function PostJobForm({ mode = 'create', initial }: Props = {}) {
 
 const inputCls =
   'w-full bg-(--color-surface) border border-(--color-border) px-3 py-2 text-sm focus:outline-none focus:border-(--brand-primary)'
+
+function salaryPreview(
+  minStr: string,
+  maxStr: string,
+  currency: string,
+  period: SalaryPeriod,
+): string {
+  const min = minStr ? Math.round(parseFloat(minStr) * 100) : null
+  const max = maxStr ? Math.round(parseFloat(maxStr) * 100) : null
+  return (
+    formatSalaryRange(min, max, currency.toUpperCase(), period) ?? ''
+  )
+}
 
 function FieldGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (

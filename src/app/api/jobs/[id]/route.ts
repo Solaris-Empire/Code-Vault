@@ -28,6 +28,7 @@ const PatchSchema = z
     salaryMinCents: z.number().int().min(0).nullable().optional(),
     salaryMaxCents: z.number().int().min(0).nullable().optional(),
     salaryCurrency: z.string().length(3).toUpperCase().optional(),
+    salaryPeriod: z.enum(['hour', 'day', 'week', 'month', 'year']).optional(),
     description: z.string().trim().min(50).max(10_000).optional(),
     requirements: z.string().trim().max(5_000).nullable().optional(),
     benefits: z.string().trim().max(3_000).nullable().optional(),
@@ -107,6 +108,7 @@ export async function PATCH(
   if (input.salaryMinCents !== undefined) patch.salary_min_cents = input.salaryMinCents
   if (input.salaryMaxCents !== undefined) patch.salary_max_cents = input.salaryMaxCents
   if (input.salaryCurrency !== undefined) patch.salary_currency = input.salaryCurrency
+  if (input.salaryPeriod !== undefined) patch.salary_period = input.salaryPeriod
   if (input.description !== undefined) patch.description = input.description
   if (input.requirements !== undefined) patch.requirements = input.requirements
   if (input.benefits !== undefined) patch.benefits = input.benefits

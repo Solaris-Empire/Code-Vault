@@ -7,7 +7,7 @@ import { ArrowLeft } from 'lucide-react'
 import { createClient, getSupabaseAdmin } from '@/lib/supabase/server'
 import { requireBetaFeature } from '@/lib/feature-flags'
 import PostJobForm, { type JobFormInitialValues } from '../../new/post-job-form'
-import type { EmploymentType } from '@/lib/jobs/types'
+import type { EmploymentType, SalaryPeriod } from '@/lib/jobs/types'
 
 export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Edit job · CodeVault' }
@@ -30,7 +30,7 @@ export default async function EditJobPage({
     .select(`
       id, poster_id, title, company_name, company_website,
       employment_type, location, remote,
-      salary_min_cents, salary_max_cents, salary_currency,
+      salary_min_cents, salary_max_cents, salary_currency, salary_period,
       description, requirements, benefits, skills,
       apply_url, apply_email
     `)
@@ -51,6 +51,7 @@ export default async function EditJobPage({
     salaryMinCents: job.salary_min_cents,
     salaryMaxCents: job.salary_max_cents,
     salaryCurrency: job.salary_currency,
+    salaryPeriod: (job.salary_period ?? 'year') as SalaryPeriod,
     description: job.description,
     requirements: job.requirements,
     benefits: job.benefits,
