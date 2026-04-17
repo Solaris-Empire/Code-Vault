@@ -4,6 +4,7 @@
 // sees "Manage applications" link instead. Non-logged-in visitors
 // see an apply CTA that routes through /login first.
 
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import {
@@ -15,11 +16,46 @@ import {
   EMPLOYMENT_TYPE_OPTIONS,
   formatSalaryRange,
 } from '@/lib/jobs/types'
+import { jobPostingJsonLd, jsonLdScript } from '@/lib/seo/jsonld'
 import ApplyPanel from './apply-panel'
 import OwnerControls from './owner-controls'
 import ReportButton from '@/components/report-button'
 
 export const dynamic = 'force-dynamic'
+
+export async function generateMetadata({
+  params,
+}: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params
+  const admin = getSupabaseAdmin()
+  const { data: job } = await admin
+    .from('jobs')
+    .select('title, company_name, description, remote, location, employment_type')
+    .eq('id', id)
+    .eq('status', 'active')
+    .maybeSingle()
+  if (!job) return { title: 'Job not found' }
+
+  const where = job.remote ? 'Remote' : job.location || 'On-site'
+  const summary = job.description.slice(0, 155).trim() + '…'
+  return {
+    title: `${job.title} at ${job.company_name} (${where})`,
+    description: summary,
+    openGraph: {
+      title: `${job.title} — ${job.company_name}`,
+      description: summary,
+      type: 'article',
+    },
+    twitter: {
+      card: 'summary',
+      title: `${job.title} at ${job.company_name}`,
+      description: summary,
+    },
+    alternates: {
+      canonical: `/jobs/${id}`,
+    },
+  }
+}
 
 export default async function JobDetailPage({
   params,
@@ -79,8 +115,29 @@ export default async function JobDetailPage({
   const expired = new Date(job.expires_at) < new Date()
   const isOwner = user?.id === job.poster_id
 
+  const ld = jobPostingJsonLd({
+    id: job.id,
+    title: job.title,
+    description: job.description,
+    employmentType: job.employment_type,
+    companyName: job.company_name,
+    companyWebsite: job.company_website,
+    remote: job.remote,
+    location: job.location,
+    salaryMinCents: job.salary_min_cents,
+    salaryMaxCents: job.salary_max_cents,
+    salaryCurrency: job.salary_currency,
+    salaryPeriod: job.salary_period,
+    createdAt: job.created_at,
+    expiresAt: job.expires_at,
+  })
+
   return (
     <div className="min-h-screen bg-(--color-background) text-foreground">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(ld) }}
+      />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <Link
           href="/jobs"

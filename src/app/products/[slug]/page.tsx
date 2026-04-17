@@ -20,6 +20,7 @@ import type { GithubMatchRow } from '@/lib/analysis/github-match'
 import { SellerTierBadge } from '@/components/seller/seller-tier-badge'
 import type { SellerTier } from '@/lib/seller/tier'
 import ReportButton from '@/components/report-button'
+import { productJsonLd, jsonLdScript } from '@/lib/seo/jsonld'
 
 export const revalidate = 60
 
@@ -98,6 +99,16 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
       title: product.title,
       description: product.short_description ?? undefined,
       images: product.thumbnail_url ? [product.thumbnail_url] : undefined,
+      type: 'website',
+    },
+    twitter: {
+      card: product.thumbnail_url ? 'summary_large_image' : 'summary',
+      title: product.title,
+      description: product.short_description ?? undefined,
+      images: product.thumbnail_url ? [product.thumbnail_url] : undefined,
+    },
+    alternates: {
+      canonical: `/products/${slug}`,
     },
   }
 }
@@ -179,8 +190,26 @@ export default async function ProductPage({ params }: ProductPageProps) {
   }
   const showAiDetection = typedProduct.show_ai_detection ?? true
 
+  const ld = productJsonLd({
+    title: typedProduct.title,
+    slug: typedProduct.slug,
+    description: typedProduct.short_description || typedProduct.description || typedProduct.title,
+    thumbnailUrl: typedProduct.thumbnail_url,
+    priceCents: typedProduct.price_cents,
+    priceCurrency: 'USD',
+    sellerName: typedProduct.seller.display_name,
+    avgRating: typedProduct.avg_rating ?? null,
+    reviewCount: typedProduct.review_count ?? 0,
+    downloadCount: typedProduct.download_count ?? 0,
+    createdAt: typedProduct.created_at,
+  })
+
   return (
     <main className="min-h-screen bg-white text-gray-900">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(ld) }}
+      />
       {/* Breadcrumb */}
       <div className="border-b border-gray-100 bg-gray-50/50">
         <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
